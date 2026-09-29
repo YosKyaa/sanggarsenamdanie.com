@@ -132,6 +132,28 @@ export type RentalUseRow = Timestamps & {
   is_active: boolean
 }
 
+export type AnalyticsEventRow = {
+  id: number
+  created_at: string
+  type: "pageview" | "whatsapp_click"
+  path: string
+  referrer_host: string | null
+  country: string | null
+  device: "mobile" | "tablet" | "desktop"
+  visitor_hash: string
+}
+
+export type AnalyticsSummary = {
+  days: number
+  totals: { visitors: number; pageviews: number; whatsapp_clicks: number }
+  previous: { visitors: number; pageviews: number; whatsapp_clicks: number }
+  daily: { date: string; visitors: number; pageviews: number; whatsapp_clicks: number }[]
+  top_pages: { path: string; pageviews: number }[]
+  whatsapp_pages: { path: string; clicks: number }[]
+  referrers: { source: string; visitors: number }[]
+  devices: { device: AnalyticsEventRow["device"]; visitors: number }[]
+}
+
 export type TestimonialRow = Timestamps & {
   id: string
   name: string
@@ -225,6 +247,10 @@ export type Database = {
       stats: Table<StatRow, InsertOf<StatRow, AutoCols | "suffix" | "count_up" | "sort_order" | "is_active">>
       brand_pillars: Table<BrandPillarRow, InsertOf<BrandPillarRow, AutoCols | "sort_order" | "is_active">>
       rental_uses: Table<RentalUseRow, InsertOf<RentalUseRow, AutoCols | "sort_order" | "is_active">>
+      analytics_events: Table<
+        AnalyticsEventRow,
+        InsertOf<AnalyticsEventRow, "id" | "created_at" | "referrer_host" | "country">
+      >
       testimonials: Table<
         TestimonialRow,
         InsertOf<TestimonialRow, AutoCols | "context" | "photo_url" | "is_published">
@@ -241,6 +267,7 @@ export type Database = {
     Views: Record<never, never>
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean }
+      analytics_summary: { Args: { p_days: number }; Returns: AnalyticsSummary }
       get_request_status: {
         Args: { p_reference: string; p_phone: string }
         Returns: {

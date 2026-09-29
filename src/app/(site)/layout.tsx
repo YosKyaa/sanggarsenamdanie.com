@@ -1,6 +1,7 @@
 import { JsonLd } from "@/components/atoms/json-ld"
 import { SpotlightTracker } from "@/components/atoms/motion"
 import { ScrollProgress } from "@/components/atoms/scroll-effects"
+import { AnalyticsTracker } from "@/components/organisms/analytics-tracker"
 import { Footer } from "@/components/organisms/footer"
 import { Navbar } from "@/components/organisms/navbar"
 import { WhatsAppFloat } from "@/components/organisms/whatsapp-float"
@@ -18,6 +19,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       <ScrollProgress />
       <SpotlightTracker />
+      <AnalyticsTracker />
       <a
         href="#konten"
         className="sr-only z-50 rounded-full bg-brand-700 px-5 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
