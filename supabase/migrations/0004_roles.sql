@@ -61,84 +61,87 @@ as $$
 $$;
 
 -- ------------------------------------------------------------------
--- Content tables: staff can write, staff can see hidden rows
+-- Content tables: staff can write, staff can see hidden rows.
+-- Existing policies are dropped whatever their names (projects set up
+-- by hand may have used different names), then recreated below.
 -- ------------------------------------------------------------------
 
-drop policy "programs: public read" on public.programs;
-drop policy "programs: admin write" on public.programs;
+do $$
+declare p record;
+begin
+  for p in
+    select policyname, tablename from pg_policies
+    where schemaname = 'public'
+      and tablename in ('programs', 'instructors', 'certificates', 'testimonials', 'class_schedule', 'articles',
+                        'faqs', 'stats', 'brand_pillars', 'rental_uses', 'studio_rental_requests')
+  loop
+    execute format('drop policy %I on public.%I', p.policyname, p.tablename);
+  end loop;
+
+  for p in
+    select policyname from pg_policies
+    where schemaname = 'storage' and tablename = 'objects' and policyname like 'storage:%'
+  loop
+    execute format('drop policy %I on storage.objects', p.policyname);
+  end loop;
+end $$;
+
 create policy "programs: public read" on public.programs
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "programs: staff write" on public.programs
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "instructors: public read" on public.instructors;
-drop policy "instructors: admin write" on public.instructors;
 create policy "instructors: public read" on public.instructors
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "instructors: staff write" on public.instructors
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "certificates: admin write" on public.certificates;
+create policy "certificates: public read" on public.certificates
+  for select to anon, authenticated using (true);
 create policy "certificates: staff write" on public.certificates
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "testimonials: public read" on public.testimonials;
-drop policy "testimonials: admin write" on public.testimonials;
 create policy "testimonials: public read" on public.testimonials
   for select to anon, authenticated using (is_published or (select public.is_staff()));
 create policy "testimonials: staff write" on public.testimonials
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "class_schedule: public read" on public.class_schedule;
-drop policy "class_schedule: admin write" on public.class_schedule;
 create policy "class_schedule: public read" on public.class_schedule
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "class_schedule: staff write" on public.class_schedule
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "articles: public read" on public.articles;
-drop policy "articles: admin write" on public.articles;
 create policy "articles: public read" on public.articles
   for select to anon, authenticated using (is_published or (select public.is_staff()));
 create policy "articles: staff write" on public.articles
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "faqs: public read" on public.faqs;
-drop policy "faqs: admin write" on public.faqs;
 create policy "faqs: public read" on public.faqs
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "faqs: staff write" on public.faqs
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "stats: public read" on public.stats;
-drop policy "stats: admin write" on public.stats;
 create policy "stats: public read" on public.stats
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "stats: staff write" on public.stats
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "brand_pillars: public read" on public.brand_pillars;
-drop policy "brand_pillars: admin write" on public.brand_pillars;
 create policy "brand_pillars: public read" on public.brand_pillars
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "brand_pillars: staff write" on public.brand_pillars
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "rental_uses: public read" on public.rental_uses;
-drop policy "rental_uses: admin write" on public.rental_uses;
 create policy "rental_uses: public read" on public.rental_uses
   for select to anon, authenticated using (is_active or (select public.is_staff()));
 create policy "rental_uses: staff write" on public.rental_uses
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-drop policy "rental_requests: admin manage" on public.studio_rental_requests;
+create policy "rental_requests: public submit" on public.studio_rental_requests
+  for insert to anon, authenticated with check (status = 'new');
 create policy "rental_requests: staff manage" on public.studio_rental_requests
   for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
 -- Uploads (program photos, certificates, founder photos)
-drop policy "storage: admin insert" on storage.objects;
-drop policy "storage: admin update" on storage.objects;
-drop policy "storage: admin delete" on storage.objects;
 create policy "storage: staff insert" on storage.objects
   for insert to authenticated
   with check (bucket_id in ('images', 'certificates', 'founder') and (select public.is_staff()));
