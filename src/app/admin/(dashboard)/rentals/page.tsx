@@ -1,17 +1,16 @@
 import { Plus } from "lucide-react"
-import Link from "next/link"
 
 import { ButtonLink } from "@/components/atoms/button"
 import {
-  AdminNotice,
   AdminPageHeader,
+  EmptyState,
   StatusFilter,
-  StatusForm,
-  StatusPill,
+  TableCard,
   WhatsAppContact,
 } from "@/components/organisms/admin/admin-ui"
+import { RowActions } from "@/components/organisms/admin/row-actions"
+import { StatusSelect } from "@/components/organisms/admin/status-select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { updateRentalStatus } from "@/features/admin/actions"
 import { listRentals } from "@/features/admin/queries"
 import { site } from "@/lib/content/site"
 import { formatDate } from "@/lib/utils/format"
@@ -22,12 +21,8 @@ export const metadata = { title: "Sewa Studio" }
 
 const statuses: RequestStatus[] = ["new", "contacted", "completed"]
 
-export default async function RentalsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string; notice?: string }>
-}) {
-  const { status: raw, notice } = await searchParams
+export default async function RentalsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const { status: raw } = await searchParams
   const status = statuses.includes(raw as RequestStatus) ? (raw as RequestStatus) : undefined
   const rentals = await listRentals(status)
 
@@ -43,65 +38,62 @@ export default async function RentalsPage({
           </ButtonLink>
         }
       />
-      <AdminNotice notice={notice} />
       <StatusFilter base="/admin/rentals" current={status} />
 
-      <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-white shadow-soft">
+      <TableCard count={rentals.length} noun="permintaan">
         {rentals.length === 0 ? (
-          <p className="p-6 text-ink-muted">Belum ada data.</p>
+          <EmptyState title={status ? "Tidak ada permintaan dengan status ini." : "Belum ada permintaan sewa."} />
         ) : (
-          <Table>
+          <Table className="min-w-[960px]">
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableHead>Pemohon</TableHead>
                 <TableHead>Acara</TableHead>
-                <TableHead>Kode</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ubah status</TableHead>
-                <TableHead>
+                <TableHead className="w-36">Kode</TableHead>
+                <TableHead className="w-52">Status</TableHead>
+                <TableHead className="w-44 text-right">
                   <span className="sr-only">Aksi</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rentals.map((r) => (
-                <TableRow key={r.id} className="align-top">
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
+                <TableRow key={r.id}>
+                  <TableCell className="align-top">
+                    <div className="flex flex-col gap-0.5">
                       <span className="font-semibold text-ink">{r.name}</span>
                       {r.organization ? <span className="text-sm text-ink-muted">{r.organization}</span> : null}
-                      <span className="text-sm text-ink-muted">{formatPhone(r.phone)}</span>
+                      <span className="text-sm text-ink-muted tabular-nums">{formatPhone(r.phone)}</span>
                       <WhatsAppContact
                         phone={r.phone}
                         message={`Halo ${r.name}, terima kasih atas permintaan sewa studio di ${site.name} (kode ${r.reference_code}).`}
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-72 whitespace-normal">
-                    <span className="font-medium">
+                  <TableCell className="align-top">
+                    <p className="font-medium text-ink">
                       {formatDate(r.event_date)} · {r.participant_count} peserta
-                    </span>
-                    {r.message ? <p className="mt-1 text-sm text-ink-muted">{r.message}</p> : null}
+                    </p>
+                    {r.message ? <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{r.message}</p> : null}
                     <p className="mt-1 text-xs text-ink-muted">Masuk {formatDate(r.created_at, true)}</p>
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{r.reference_code}</TableCell>
-                  <TableCell>
-                    <StatusPill status={r.status} />
+                  <TableCell className="align-top font-mono text-sm">{r.reference_code}</TableCell>
+                  <TableCell className="align-top">
+                    <StatusSelect id={r.id} status={r.status} name={r.name} />
                   </TableCell>
-                  <TableCell>
-                    <StatusForm id={r.id} status={r.status} action={updateRentalStatus} label={r.name} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/admin/rentals/${r.id}`} className="text-sm font-semibold text-brand-700 hover:underline">
-                      Ubah<span className="sr-only"> permintaan {r.name}</span>
-                    </Link>
+                  <TableCell className="align-top">
+                    <RowActions
+                      editHref={`/admin/rentals/${r.id}`}
+                      name={`permintaan ${r.name}`}
+                      deletable={{ resourceKey: "rentals", id: r.id, singular: "permintaan sewa" }}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
-      </div>
+      </TableCard>
     </>
   )
 }

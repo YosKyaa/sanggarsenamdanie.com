@@ -170,8 +170,4 @@ export const resourceSchemas = {
     class_photo_url: imageUrl,
     studio_photo_url: imageUrl,
   }),
-  users: z.object({
-    name: text(80),
-    role: z.enum(["admin", "member"]),
-  }),
 } satisfies Record<ResourceKey, z.ZodType>

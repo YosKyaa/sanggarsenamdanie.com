@@ -1,47 +1,47 @@
 "use client"
 
 import { Trash2 } from "lucide-react"
-import { useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 import { Button } from "@/components/atoms/button"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/organisms/admin/confirm-dialog"
+import { deleteResource } from "@/features/admin/actions"
 
-/** Deletion always asks for confirmation (error prevention). */
-export function DeleteButton({ label, onConfirm }: { label: string; onConfirm: () => Promise<void> }) {
-  const [pending, startTransition] = useTransition()
+type DeleteButtonProps = {
+  resourceKey: string
+  id: string
+  singular: string
+  name: string
+  /** Where to go after a successful delete (the list page). */
+  redirectTo: string
+}
+
+/** Delete on the edit page: confirm, toast, then back to the list. */
+export function DeleteButton({ resourceKey, id, singular, name, redirectTo }: DeleteButtonProps) {
+  const [confirming, setConfirming] = useState(false)
+  const router = useRouter()
 
   return (
-    <Dialog>
-      <DialogTrigger render={<Button variant="destructive" />}>
+    <>
+      <Button variant="destructive" onClick={() => setConfirming(true)}>
         <Trash2 aria-hidden />
         Hapus
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Hapus {label}?</DialogTitle>
-          <DialogDescription>Data yang dihapus tidak bisa dikembalikan dan langsung hilang dari website.</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose render={<Button variant="ghost" />}>Batal</DialogClose>
-          <Button
-            variant="destructive"
-            disabled={pending}
-            onClick={() => startTransition(() => onConfirm())}
-            className="bg-destructive text-white hover:bg-destructive/90"
-          >
-            {pending ? "Menghapus…" : "Ya, hapus"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </Button>
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        tone="danger"
+        title={`Hapus ${singular}?`}
+        description={
+          <>
+            <strong className="text-ink">{name}</strong> akan dihapus permanen dan langsung hilang dari website.
+          </>
+        }
+        confirmLabel="Ya, hapus"
+        onConfirm={() => deleteResource(resourceKey, id)}
+        onSuccess={() => router.push(redirectTo)}
+      />
+    </>
   )
 }

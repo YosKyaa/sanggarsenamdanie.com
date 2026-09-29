@@ -1,37 +1,38 @@
-import { ExternalLink, LogOut } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { Suspense } from "react"
 
 import { Logo } from "@/components/atoms/logo"
 import { AdminNav } from "@/components/organisms/admin/admin-nav"
-import { signOut } from "@/features/admin/auth-actions"
-import { requireAdmin } from "@/features/admin/auth"
+import { RolePill } from "@/components/organisms/admin/admin-ui"
+import { SignOutButton } from "@/components/organisms/admin/sign-out-button"
+import { AdminToaster, NoticeToast } from "@/components/organisms/admin/toaster"
+import { requireStaff, type StaffRole } from "@/features/admin/auth"
 
 // Session-dependent: never prerender.
 export const dynamic = "force-dynamic"
 
-function AccountLinks({ label, email }: { label: string; email?: string }) {
+function AccountLinks({ label, email, role }: { label: string; email?: string; role: StaffRole }) {
   return (
-    <div className="flex flex-col gap-2 border-t border-line pt-4 text-sm">
-      <p className="truncate text-ink-muted" title={email}>
-        {label}
-      </p>
+    <div className="flex flex-col gap-2.5 border-t border-line pt-4 text-sm">
+      <div className="flex flex-col gap-1">
+        <p className="truncate font-semibold text-ink" title={email}>
+          {label}
+        </p>
+        <RolePill role={role} />
+      </div>
       <Link href="/" target="_blank" className="flex items-center gap-2 font-semibold text-brand-700 hover:underline">
         <ExternalLink aria-hidden className="size-4" />
         Lihat website<span className="sr-only"> (membuka tab baru)</span>
       </Link>
-      <form action={signOut}>
-        <button type="submit" className="flex items-center gap-2 font-semibold text-ink hover:text-brand-700">
-          <LogOut aria-hidden className="size-4" />
-          Keluar
-        </button>
-      </form>
+      <SignOutButton />
     </div>
   )
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { profile, user } = await requireAdmin()
-  const account = <AccountLinks label={profile?.name ?? user.email ?? "Admin"} email={user.email} />
+  const { profile, user } = await requireStaff()
+  const account = <AccountLinks label={profile.name ?? user.email ?? "Admin"} email={user.email} role={profile.role} />
 
   return (
     <div className="lg:grid lg:min-h-dvh lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -46,16 +47,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
             Menu admin
           </summary>
           <div className="flex flex-col gap-4 pt-4">
-            <AdminNav />
+            <AdminNav role={profile.role} />
             {account}
           </div>
         </details>
         <div className="hidden flex-1 overflow-y-auto lg:block">
-          <AdminNav />
+          <AdminNav role={profile.role} />
         </div>
         <div className="hidden lg:block">{account}</div>
       </aside>
-      <main className="flex flex-col gap-8 p-4 sm:p-6 lg:p-10">{children}</main>
+      <main className="flex min-w-0 flex-col gap-8 p-4 sm:p-6 lg:p-10">{children}</main>
+      <AdminToaster />
+      <Suspense>
+        <NoticeToast />
+      </Suspense>
     </div>
   )
 }

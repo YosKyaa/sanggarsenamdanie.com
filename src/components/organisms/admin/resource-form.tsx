@@ -3,11 +3,14 @@
 import { cn } from "cn"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useActionState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { useActionState, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
-import { Button, ButtonLink } from "@/components/atoms/button"
+import { Button } from "@/components/atoms/button"
 import { Input, NativeSelect, Textarea } from "@/components/atoms/input"
 import { FormField } from "@/components/molecules/form-field"
+import { ConfirmDialog } from "@/components/organisms/admin/confirm-dialog"
 import { FormAlert } from "@/components/organisms/form-feedback"
 import type { FieldConfig, ResourceKey } from "@/features/admin/resources"
 import { resources } from "@/features/admin/resources"
@@ -34,10 +37,25 @@ export function ResourceForm({ resourceKey, action, initialValues, relationOptio
   const resource = resources[resourceKey]
   const [state, formAction, pending] = useActionState(action, { status: "idle" } as FormState)
   const alertRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  // Tracks unsaved edits so "Batal" can ask before throwing them away.
+  const [dirty, setDirty] = useState(false)
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const listHref = `/admin/${resource.key}`
 
   useEffect(() => {
-    if (state.status === "error") alertRef.current?.focus()
+    if (state.status !== "error") return
+    alertRef.current?.focus()
+    toast.error(state.message ?? "Gagal menyimpan. Periksa kembali isian.")
   }, [state])
+
+  // Warn before closing the tab or reloading with unsaved edits.
+  useEffect(() => {
+    if (!dirty) return
+    const onBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault()
+    window.addEventListener("beforeunload", onBeforeUnload)
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [dirty])
 
   const errors = state.fieldErrors ?? {}
   // A field with `section` starts a new titled group.
@@ -50,7 +68,13 @@ export function ResourceForm({ resourceKey, action, initialValues, relationOptio
     state.values && field.name in state.values ? (state.values[field.name] ?? "") : toInputValue(field, initialValues[field.name])
 
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-6">
+    <form
+      action={formAction}
+      noValidate
+      onChange={() => setDirty(true)}
+      onSubmit={() => setDirty(false)}
+      className="flex flex-col gap-6"
+    >
       <div ref={alertRef} tabIndex={-1} className="outline-none">
         <FormAlert message={state.message} />
       </div>
@@ -186,10 +210,28 @@ export function ResourceForm({ resourceKey, action, initialValues, relationOptio
           {pending ? <Loader2 aria-hidden className="animate-spin" /> : null}
           {pending ? "Menyimpan…" : "Simpan"}
         </Button>
-        <ButtonLink href={`/admin/${resource.key}`} variant="ghost">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => (dirty ? setConfirmLeave(true) : router.push(listHref))}
+        >
           Batal
-        </ButtonLink>
+        </Button>
+        {dirty ? <span className="self-center text-sm text-ink-muted">Ada perubahan yang belum disimpan</span> : null}
       </div>
+
+      <ConfirmDialog
+        open={confirmLeave}
+        onOpenChange={setConfirmLeave}
+        tone="danger"
+        title="Buang perubahan?"
+        description="Perubahan yang belum disimpan akan hilang."
+        confirmLabel="Ya, buang perubahan"
+        onConfirm={() => {
+          setDirty(false)
+          router.push(listHref)
+        }}
+      />
     </form>
   )
 }

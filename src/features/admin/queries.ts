@@ -3,13 +3,13 @@ import "server-only"
 import { weekdays } from "@/lib/utils/format"
 import type { RequestStatus, StudioRentalRequestRow, Weekday } from "@/types/database"
 
-import { requireAdmin } from "./auth"
+import { requireStaff } from "./auth"
 import type { ResourceConfig } from "./resources"
 
 export type AdminRow = Record<string, unknown> & { id: string }
 
 export async function listResource(resource: ResourceConfig): Promise<AdminRow[]> {
-  const { supabase } = await requireAdmin()
+  const { supabase } = await requireStaff()
   let query = supabase.from(resource.table).select("*")
   for (const order of resource.orderBy) query = query.order(order.column, { ascending: order.ascending })
 
@@ -29,14 +29,14 @@ export async function listResource(resource: ResourceConfig): Promise<AdminRow[]
 }
 
 export async function getResourceRow(resource: ResourceConfig, id: string): Promise<AdminRow | null> {
-  const { supabase } = await requireAdmin()
+  const { supabase } = await requireStaff()
   const { data } = await supabase.from(resource.table).select("*").eq("id", id).maybeSingle()
   return (data as AdminRow | null) ?? null
 }
 
 /** Options for relation selects (program_id, instructor_id). */
 export async function getRelationOptions() {
-  const { supabase } = await requireAdmin()
+  const { supabase } = await requireStaff()
   const [programs, instructors] = await Promise.all([
     supabase.from("programs").select("id, title").order("sort_order"),
     supabase.from("instructors").select("id, name").order("sort_order"),
@@ -48,7 +48,7 @@ export async function getRelationOptions() {
 }
 
 export async function listRentals(status?: RequestStatus): Promise<StudioRentalRequestRow[]> {
-  const { supabase } = await requireAdmin()
+  const { supabase } = await requireStaff()
   let query = supabase.from("studio_rental_requests").select("*").order("created_at", { ascending: false }).limit(200)
   if (status) query = query.eq("status", status)
   const { data, error } = await query
@@ -57,7 +57,7 @@ export async function listRentals(status?: RequestStatus): Promise<StudioRentalR
 }
 
 export async function getDashboardStats() {
-  const { supabase } = await requireAdmin()
+  const { supabase } = await requireStaff()
   const count = { count: "exact" as const, head: true }
 
   const [newRentals, programs, schedules, pendingTestimonials] = await Promise.all([

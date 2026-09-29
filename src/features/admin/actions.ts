@@ -5,19 +5,22 @@ import { randomUUID } from "node:crypto"
 import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 
-import { formValues, type FormState } from "@/lib/forms"
+import { formValues, type ActionResult, type FormState } from "@/lib/forms"
 import { createReferenceCode } from "@/lib/utils/reference"
 import { fieldErrorsOf } from "@/lib/validation"
 import type { RequestStatus } from "@/types/database"
 
-import { requireAdmin } from "./auth"
+import { requireAdmin, requireStaff } from "./auth"
 import { getResource, type FieldConfig, type ResourceConfig } from "./resources"
 import { resourceSchemas } from "./schemas"
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"]
 
-type Supabase = Awaited<ReturnType<typeof requireAdmin>>["supabase"]
+type Supabase = Awaited<ReturnType<typeof requireStaff>>["supabase"]
+
+/** Content is staff-editable; site settings are admin-only. */
+const gateFor = (resource: ResourceConfig) => (resource.adminOnly ? requireAdmin() : requireStaff())
 
 /** Uploads a replacement file for an image field; returns the new public URL, or an error message. */
 async function uploadField(
@@ -63,7 +66,7 @@ export async function saveResource(
     return { status: "error", message: `Data ${resource.singular} tidak bisa ditambah dari sini.` }
   }
 
-  const { supabase, user } = await requireAdmin()
+  const { supabase } = await gateFor(resource)
   const values = formValues(formData)
 
   // Image fields: new upload wins, "remove" clears, otherwise keep the current URL.
@@ -82,11 +85,6 @@ export async function saveResource(
   const parsed = resourceSchemas[resource.key].safeParse(values)
   if (!parsed.success) {
     return { status: "error", message: "Periksa kembali isian yang ditandai.", fieldErrors: fieldErrorsOf(parsed.error), values }
-  }
-
-  // Never let an admin lock themselves out by removing their own admin role.
-  if (resource.key === "users" && id === user.id && (parsed.data as { role: string }).role !== "admin") {
-    return { status: "error", message: "Anda tidak bisa mencabut akses admin akun Anda sendiri.", values }
   }
 
   const payload: Record<string, unknown> = { ...parsed.data }
@@ -109,32 +107,43 @@ export async function saveResource(
   }
 
   revalidateResource(resource)
-  redirect(`/admin/${resource.key}?notice=saved`)
+  redirect(`/admin/${resource.key}?notice=${id ? "saved" : "created"}`)
 }
 
-export async function deleteResource(resourceKey: string, id: string) {
+export async function deleteResource(resourceKey: string, id: string): Promise<ActionResult> {
   const resource = getResource(resourceKey)
-  if (!resource || resource.singleton || resource.allowDelete === false) return
+  if (!resource || resource.singleton || resource.allowDelete === false) {
+    return { ok: false, message: "Data ini tidak bisa dihapus." }
+  }
 
-  const { supabase } = await requireAdmin()
+  const { supabase } = await gateFor(resource)
   const { error } = await supabase.from(resource.table).delete().eq("id", id)
-  if (error) redirect(`/admin/${resource.key}/${id}?notice=delete-failed`)
+  if (error) {
+    const message =
+      error.code === "23503"
+        ? `Gagal menghapus: ${resource.singular} ini masih dipakai data lain (mis. jadwal).`
+        : `Gagal menghapus: ${error.message}`
+    return { ok: false, message }
+  }
 
   revalidateResource(resource)
-  redirect(`/admin/${resource.key}?notice=deleted`)
+  return { ok: true, message: `${capitalize(resource.singular)} berhasil dihapus.` }
 }
 
 const statuses: RequestStatus[] = ["new", "contacted", "completed"]
 
-export async function updateRentalStatus(formData: FormData) {
-  const id = String(formData.get("id") ?? "")
-  const status = String(formData.get("status") ?? "") as RequestStatus
-  if (!id || !statuses.includes(status)) return
+export async function updateRentalStatus(id: string, status: RequestStatus): Promise<ActionResult> {
+  if (!id || !statuses.includes(status)) return { ok: false, message: "Status tidak dikenal." }
 
-  const { supabase } = await requireAdmin()
+  const { supabase } = await requireStaff()
   const { error } = await supabase.from("studio_rental_requests").update({ status }).eq("id", id)
-  if (error) console.error("[admin] rental status update failed:", error.message)
+  if (error) return { ok: false, message: `Gagal mengubah status: ${error.message}` }
 
   revalidatePath("/admin/rentals")
   revalidatePath("/admin")
+  return { ok: true, message: "Status permintaan sewa diperbarui." }
+}
+
+function capitalize(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1)
 }

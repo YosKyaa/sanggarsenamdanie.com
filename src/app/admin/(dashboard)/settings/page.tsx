@@ -1,6 +1,7 @@
-import { AdminNotice, AdminPageHeader } from "@/components/organisms/admin/admin-ui"
+import { AdminPageHeader } from "@/components/organisms/admin/admin-ui"
 import { ResourceForm } from "@/components/organisms/admin/resource-form"
 import { saveResource } from "@/features/admin/actions"
+import { requireAdmin } from "@/features/admin/auth"
 import { getRelationOptions, getResourceRow } from "@/features/admin/queries"
 import { resources } from "@/features/admin/resources"
 import { defaultSettingsRow } from "@/lib/content/defaults"
@@ -8,18 +9,14 @@ import { defaultSettingsRow } from "@/lib/content/defaults"
 export const metadata = { title: "Pengaturan Situs" }
 
 /** Single-row editor: contact, address, founder profile and main copy for the whole site. */
-export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
+export default async function SettingsPage() {
+  await requireAdmin()
   const resource = resources.settings
-  const [{ notice }, row, relationOptions] = await Promise.all([
-    searchParams,
-    getResourceRow(resource, "1"),
-    getRelationOptions(),
-  ])
+  const [row, relationOptions] = await Promise.all([getResourceRow(resource, "1"), getRelationOptions()])
 
   return (
     <>
       <AdminPageHeader title={resource.label} description={resource.description} />
-      <AdminNotice notice={notice} />
       <div className="rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-soft sm:p-8">
         <ResourceForm
           resourceKey={resource.key}

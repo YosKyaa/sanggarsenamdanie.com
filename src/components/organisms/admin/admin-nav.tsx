@@ -20,6 +20,8 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import type { StaffRole } from "@/features/admin/auth"
+
 const groups = [
   {
     label: "Permintaan",
@@ -50,6 +52,7 @@ const groups = [
   },
   {
     label: "Pengaturan",
+    adminOnly: true,
     items: [
       { href: "/admin/settings", label: "Pengaturan Situs", icon: Settings },
       { href: "/admin/users", label: "Pengguna", icon: UserCog },
@@ -57,12 +60,13 @@ const groups = [
   },
 ]
 
-export function AdminNav() {
+/** Editors don't see the admin-only group (users, site settings). */
+export function AdminNav({ role }: { role: StaffRole }) {
   const pathname = usePathname()
 
   return (
     <nav aria-label="Navigasi admin" className="flex flex-col gap-6">
-      {groups.map((group) => (
+      {groups.filter((group) => !("adminOnly" in group) || role === "admin").map((group) => (
         <div key={group.label} className="flex flex-col gap-1">
           <p className="px-3 pb-1 text-xs font-semibold tracking-[0.1em] text-ink-muted uppercase">{group.label}</p>
           <ul className="flex flex-col gap-0.5">

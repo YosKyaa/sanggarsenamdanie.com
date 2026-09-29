@@ -32,7 +32,13 @@ export type FieldConfig = {
 export type ColumnConfig = {
   name: string
   label: string
-  format?: "boolean" | "time" | "day" | "relation" | "year" | "date" | "status"
+  format?: "boolean" | "time" | "day" | "relation" | "year" | "date" | "status" | "number" | "text"
+  /** Numbers read best right-aligned; short flags centred. */
+  align?: "left" | "center" | "right"
+  /** Tailwind width class for fixed-size columns (e.g. "w-32"); the first column takes the rest. */
+  width?: string
+  /** Wording for boolean badges (default Aktif / Nonaktif). */
+  labels?: { yes: string; no: string }
 }
 
 export type ResourceConfig = {
@@ -50,7 +56,6 @@ export type ResourceConfig = {
     | "rental_uses"
     | "studio_rental_requests"
     | "site_settings"
-    | "profiles"
   label: string
   singular: string
   description: string
@@ -65,6 +70,8 @@ export type ResourceConfig = {
   singleton?: boolean
   /** Custom list page lives at /admin/<key> (e.g. the rentals inbox). */
   customList?: boolean
+  /** Only admins (not editors) may open or change it. */
+  adminOnly?: boolean
 }
 
 export type ResourceKey =
@@ -80,7 +87,6 @@ export type ResourceKey =
   | "rentalUses"
   | "rentals"
   | "settings"
-  | "users"
 
 const activeField: FieldConfig = {
   name: "is_active",
@@ -232,7 +238,7 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     columns: [
       { name: "name", label: "Nama" },
       { name: "role_title", label: "Peran" },
-      { name: "is_founder", label: "Founder", format: "boolean" },
+      { name: "is_founder", label: "Founder", format: "boolean", labels: { yes: "Ya", no: "Tidak" } },
       { name: "is_active", label: "Aktif", format: "boolean" },
     ],
     fields: [
@@ -295,7 +301,7 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     columns: [
       { name: "title", label: "Judul" },
       { name: "slug", label: "Slug" },
-      { name: "is_published", label: "Terbit", format: "boolean" },
+      { name: "is_published", label: "Terbit", format: "boolean", labels: { yes: "Terbit", no: "Draf" } },
     ],
     fields: [
       {
@@ -340,8 +346,8 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     orderBy: [{ column: "created_at", ascending: false }],
     columns: [
       { name: "name", label: "Nama" },
-      { name: "context", label: "Keterangan" },
-      { name: "is_published", label: "Publik", format: "boolean" },
+      { name: "context", label: "Keterangan", format: "text" },
+      { name: "is_published", label: "Publik", format: "boolean", labels: { yes: "Publik", no: "Disembunyikan" } },
     ],
     fields: [
       { name: "name", label: "Nama peserta", type: "text", required: true },
@@ -366,7 +372,7 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     orderBy: [{ column: "sort_order", ascending: true }],
     columns: [
       { name: "question", label: "Pertanyaan" },
-      { name: "is_active", label: "Tampil", format: "boolean" },
+      { name: "is_active", label: "Tampil", format: "boolean", labels: { yes: "Tampil", no: "Disembunyikan" } },
     ],
     fields: [
       { name: "question", label: "Pertanyaan", type: "text", required: true, wide: true, hint: "Tulis seperti yang diketik orang di Google." },
@@ -385,9 +391,9 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     orderBy: [{ column: "sort_order", ascending: true }],
     columns: [
       { name: "label", label: "Label" },
-      { name: "value", label: "Angka" },
-      { name: "suffix", label: "Akhiran" },
-      { name: "is_active", label: "Tampil", format: "boolean" },
+      { name: "value", label: "Angka", format: "number" },
+      { name: "suffix", label: "Akhiran", align: "center", width: "w-28" },
+      { name: "is_active", label: "Tampil", format: "boolean", labels: { yes: "Tampil", no: "Disembunyikan" } },
     ],
     fields: [
       { name: "value", label: "Angka", type: "number", required: true },
@@ -415,7 +421,7 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     columns: [
       { name: "word", label: "Kata" },
       { name: "title", label: "Judul" },
-      { name: "is_active", label: "Tampil", format: "boolean" },
+      { name: "is_active", label: "Tampil", format: "boolean", labels: { yes: "Tampil", no: "Disembunyikan" } },
     ],
     fields: [
       { name: "word", label: "Kata utama", type: "text", required: true, hint: "Satu kata besar, mis. Sehat" },
@@ -435,8 +441,8 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     orderBy: [{ column: "sort_order", ascending: true }],
     columns: [
       { name: "title", label: "Judul" },
-      { name: "description", label: "Deskripsi" },
-      { name: "is_active", label: "Tampil", format: "boolean" },
+      { name: "description", label: "Deskripsi", format: "text" },
+      { name: "is_active", label: "Tampil", format: "boolean", labels: { yes: "Tampil", no: "Disembunyikan" } },
     ],
     fields: [
       { name: "title", label: "Judul", type: "text", required: true },
@@ -488,6 +494,7 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
     tags: ["settings"],
     orderBy: [],
     singleton: true,
+    adminOnly: true,
     columns: [],
     fields: [
       {
@@ -560,35 +567,6 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
       },
       { name: "class_photo_url", label: "Foto suasana kelas", type: "image", bucket: "images" },
       { name: "studio_photo_url", label: "Foto studio", type: "image", bucket: "images" },
-    ],
-  },
-  users: {
-    key: "users",
-    table: "profiles",
-    label: "Pengguna",
-    singular: "pengguna",
-    description:
-      "Akun yang bisa masuk admin. Buat akun baru di Supabase → Authentication, lalu jadikan admin di sini.",
-    tags: [],
-    orderBy: [{ column: "created_at", ascending: true }],
-    allowCreate: false,
-    allowDelete: false,
-    columns: [
-      { name: "name", label: "Nama" },
-      { name: "role", label: "Peran" },
-    ],
-    fields: [
-      { name: "name", label: "Nama", type: "text", required: true },
-      {
-        name: "role",
-        label: "Peran",
-        type: "select",
-        required: true,
-        options: [
-          { value: "admin", label: "Admin — bisa mengelola website" },
-          { value: "member", label: "Member — tidak punya akses admin" },
-        ],
-      },
     ],
   },
 }

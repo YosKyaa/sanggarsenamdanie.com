@@ -7,11 +7,11 @@ export type RequestStatus = "new" | "contacted" | "completed"
 export type ProgramCategory = "studio" | "aqua"
 export type ProgramIntensity = "ringan" | "sedang" | "tinggi"
 export type Weekday = "senin" | "selasa" | "rabu" | "kamis" | "jumat" | "sabtu" | "minggu"
-export type ProfileRole = "admin" | "member"
+export type ProfileRole = "admin" | "editor" | "member"
 
 type Timestamps = { created_at: string; updated_at: string }
 
-export type ProfileRow = { id: string; name: string | null; role: ProfileRole; created_at: string }
+export type ProfileRow = { id: string; name: string | null; email: string | null; role: ProfileRole; created_at: string }
 
 export type ProgramRow = Timestamps & {
   id: string
@@ -178,7 +178,7 @@ type Table<Row, Insert> = {
 export type Database = {
   public: {
     Tables: {
-      profiles: Table<ProfileRow, InsertOf<ProfileRow, "name" | "role" | "created_at">>
+      profiles: Table<ProfileRow, InsertOf<ProfileRow, "name" | "email" | "role" | "created_at">>
       programs: Table<
         ProgramRow,
         InsertOf<
