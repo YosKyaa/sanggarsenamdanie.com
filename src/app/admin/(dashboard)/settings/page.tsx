@@ -2,7 +2,7 @@ import { AdminPageHeader } from "@/components/organisms/admin/admin-ui"
 import { ResourceForm } from "@/components/organisms/admin/resource-form"
 import { saveResource } from "@/features/admin/actions"
 import { requireAdmin } from "@/features/admin/auth"
-import { getRelationOptions, getResourceRow } from "@/features/admin/queries"
+import { getResourceRow, noRelations } from "@/features/admin/queries"
 import { resources } from "@/features/admin/resources"
 import { defaultSettingsRow } from "@/lib/content/defaults"
 
@@ -12,7 +12,7 @@ export const metadata = { title: "Pengaturan Situs" }
 export default async function SettingsPage() {
   await requireAdmin()
   const resource = resources.settings
-  const [row, relationOptions] = await Promise.all([getResourceRow(resource, "1"), getRelationOptions()])
+  const row = await getResourceRow(resource, "1")
 
   return (
     <>
@@ -23,7 +23,7 @@ export default async function SettingsPage() {
           action={saveResource.bind(null, resource.key, "1")}
           // Before the first save the table is empty: start from the values the site shows today.
           initialValues={row ?? { ...defaultSettingsRow }}
-          relationOptions={relationOptions}
+          relationOptions={noRelations}
         />
       </div>
     </>

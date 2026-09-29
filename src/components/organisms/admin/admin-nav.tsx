@@ -9,6 +9,7 @@ import {
   Dumbbell,
   LayoutDashboard,
   ListChecks,
+  Loader2,
   MessageSquareQuote,
   Newspaper,
   Settings,
@@ -17,7 +18,7 @@ import {
   Users,
   Warehouse,
 } from "lucide-react"
-import Link from "next/link"
+import Link, { useLinkStatus } from "next/link"
 import { usePathname } from "next/navigation"
 
 import type { StaffRole } from "@/features/admin/auth"
@@ -60,6 +61,12 @@ const groups = [
   },
 ]
 
+/** Spinner on the menu item that was just clicked, until its page arrives. */
+function PendingSpinner() {
+  const { pending } = useLinkStatus()
+  return pending ? <Loader2 aria-hidden className="ml-auto size-4 animate-spin text-brand-600" /> : null
+}
+
 /** Editors don't see the admin-only group (users, site settings). */
 export function AdminNav({ role }: { role: StaffRole }) {
   const pathname = usePathname()
@@ -84,6 +91,7 @@ export function AdminNav({ role }: { role: StaffRole }) {
                   >
                     <Icon aria-hidden className="size-4" />
                     {label}
+                    <PendingSpinner />
                   </Link>
                 </li>
               )

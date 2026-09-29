@@ -5,7 +5,7 @@ import { DeleteButton } from "@/components/organisms/admin/delete-button"
 import { ResourceForm } from "@/components/organisms/admin/resource-form"
 import { saveResource } from "@/features/admin/actions"
 import { requireAdmin } from "@/features/admin/auth"
-import { getRelationOptions, getResourceRow } from "@/features/admin/queries"
+import { getRelationOptions, getResourceRow, needsRelations, noRelations } from "@/features/admin/queries"
 import { getResource } from "@/features/admin/resources"
 
 type Props = { params: Promise<{ resource: string; id: string }> }
@@ -21,7 +21,10 @@ export default async function EditResourcePage({ params }: Props) {
   if (!resource || resource.singleton) notFound()
   if (resource.adminOnly) await requireAdmin()
 
-  const [row, relationOptions] = await Promise.all([getResourceRow(resource, id), getRelationOptions()])
+  const [row, relationOptions] = await Promise.all([
+    getResourceRow(resource, id),
+    needsRelations(resource) ? getRelationOptions() : noRelations,
+  ])
   if (!row) notFound()
 
   const listHref = `/admin/${resource.key}`

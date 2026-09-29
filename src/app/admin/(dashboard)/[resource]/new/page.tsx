@@ -4,7 +4,7 @@ import { AdminPageHeader } from "@/components/organisms/admin/admin-ui"
 import { ResourceForm } from "@/components/organisms/admin/resource-form"
 import { saveResource } from "@/features/admin/actions"
 import { requireAdmin } from "@/features/admin/auth"
-import { getRelationOptions } from "@/features/admin/queries"
+import { getRelationOptions, needsRelations, noRelations } from "@/features/admin/queries"
 import { getResource } from "@/features/admin/resources"
 
 type Props = { params: Promise<{ resource: string }> }
@@ -19,7 +19,7 @@ export default async function NewResourcePage({ params }: Props) {
   if (!resource || resource.singleton || resource.allowCreate === false) notFound()
   if (resource.adminOnly) await requireAdmin()
 
-  const relationOptions = await getRelationOptions()
+  const relationOptions = needsRelations(resource) ? await getRelationOptions() : noRelations
 
   return (
     <>

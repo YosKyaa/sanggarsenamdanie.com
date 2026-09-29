@@ -27,9 +27,10 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getClaims() refreshes an expired session and verifies the JWT locally
+  // (asymmetric signing keys), avoiding a round trip to the Auth server per click.
+  const { data } = await supabase.auth.getClaims()
+  const user = data?.claims.sub ? data.claims : null
 
   if (!user && !isLogin) {
     const url = new URL("/admin/login", request.url)

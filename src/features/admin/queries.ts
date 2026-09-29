@@ -10,13 +10,15 @@ export type AdminRow = Record<string, unknown> & { id: string }
 
 export async function listResource(resource: ResourceConfig): Promise<AdminRow[]> {
   const { supabase } = await requireStaff()
-  let query = supabase.from(resource.table).select("*")
+  // Only what the table shows (lists never need e.g. full article bodies).
+  const columns = new Set(["id", ...resource.columns.map((c) => c.name), ...resource.orderBy.map((o) => o.column)])
+  let query = supabase.from(resource.table).select([...columns].join(", "))
   for (const order of resource.orderBy) query = query.order(order.column, { ascending: order.ascending })
 
   const { data, error } = await query
   if (error) throw new Error(`Gagal memuat ${resource.label}: ${error.message}`)
 
-  const rows = (data ?? []) as AdminRow[]
+  const rows = (data ?? []) as unknown as AdminRow[]
   // Weekday names don't sort alphabetically; order Monday → Sunday.
   if (resource.key === "schedules") {
     rows.sort(
@@ -32,6 +34,13 @@ export async function getResourceRow(resource: ResourceConfig, id: string): Prom
   const { supabase } = await requireStaff()
   const { data } = await supabase.from(resource.table).select("*").eq("id", id).maybeSingle()
   return (data as AdminRow | null) ?? null
+}
+
+export const noRelations = { programs: [], instructors: [] }
+
+/** Only forms with program/instructor dropdowns need the extra queries. */
+export function needsRelations(resource: ResourceConfig) {
+  return resource.fields.some((field) => field.relation)
 }
 
 /** Options for relation selects (program_id, instructor_id). */

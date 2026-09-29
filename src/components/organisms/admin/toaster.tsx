@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useEffect } from "react"
 import { Toaster as Sonner, toast } from "sonner"
 
@@ -36,8 +36,6 @@ const notices: Record<string, { type: "success" | "error"; message: string }> = 
  */
 export function NoticeToast() {
   const params = useSearchParams()
-  const router = useRouter()
-  const pathname = usePathname()
   const notice = params.get("notice")
 
   useEffect(() => {
@@ -45,11 +43,11 @@ export function NoticeToast() {
     const entry = notices[notice]
     if (entry) toast[entry.type](entry.message)
 
-    const next = new URLSearchParams(params)
-    next.delete("notice")
-    const query = next.toString()
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
-  }, [notice, params, pathname, router])
+    // history.replaceState updates the URL without re-requesting the page from the server.
+    const url = new URL(window.location.href)
+    url.searchParams.delete("notice")
+    window.history.replaceState(null, "", url)
+  }, [notice])
 
   return null
 }

@@ -18,10 +18,11 @@ export const requireStaff = cache(async () => {
   if (!isSupabaseConfigured) redirect("/admin/login")
 
   const supabase = await createSessionClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect("/admin/login")
+  // Verified locally from the signed JWT — no Auth-server round trip on every page.
+  const { data } = await supabase.auth.getClaims()
+  const claims = data?.claims
+  if (!claims?.sub) redirect("/admin/login")
+  const user = { id: claims.sub, email: typeof claims.email === "string" ? claims.email : undefined }
 
   const { data: profile } = await supabase.from("profiles").select("name, role").eq("id", user.id).single()
   if (profile?.role !== "admin" && profile?.role !== "editor") redirect("/admin/login?error=forbidden")
