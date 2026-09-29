@@ -1,26 +1,339 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------
+   Brand tokens — Sanggar Senam Danie
+   brand-500 (#8B5CF6) is decorative / large text only: white on it is 4.2:1.
+   Interactive fills and links use brand-700 (#6D28D9, 7.1:1 on white).
+   ------------------------------------------------------------------ */
+@theme {
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+
+  --color-ink: #171717;
+  --color-ink-muted: #666666;
+  --color-surface: #ffffff;
+  --color-surface-soft: #faf9ff;
+  --color-line: #ece8f5;
+  --color-whatsapp: #15803d;
+  --color-whatsapp-hover: #166534;
+
+  --shadow-soft: 0 20px 40px rgb(0 0 0 / 0.05);
+  --shadow-lift: 0 24px 48px rgb(76 29 149 / 0.1);
+  --shadow-brand: 0 16px 32px rgb(109 40 217 / 0.25);
+
+  --radius-card: 24px;
+  --radius-pill: 999px;
+
+  --breakpoint-xs: 26rem;
+
+  /* Ambient motion — always used behind `motion-safe:` */
+  --animate-float: float-y 6s ease-in-out infinite;
+  --animate-float-slow: float-y 9s ease-in-out infinite;
+  --animate-blob: blob 18s ease-in-out infinite;
+  --animate-spin-slow: spin 40s linear infinite;
+
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes blob {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(32px, -24px) scale(1.08);
+    }
+    66% {
+      transform: translate(-24px, 20px) scale(0.94);
+    }
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* shadcn semantic tokens mapped onto the brand palette (light only by design). */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #6d28d9;
+  --primary-foreground: #ffffff;
+  --secondary: #ede9fe;
+  --secondary-foreground: #5b21b6;
+  --muted: #faf9ff;
+  --muted-foreground: #666666;
+  --accent: #f5f3ff;
+  --accent-foreground: #5b21b6;
+  --destructive: #b42318;
+  --border: #ece8f5;
+  --input: #ddd6ea;
+  --ring: #8b5cf6;
+  --radius: 0.875rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    @apply bg-background text-ink antialiased;
+  }
+
+  /* Anchor targets clear the floating navbar. */
+  [id] {
+    scroll-margin-top: 6rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-700);
+    outline-offset: 3px;
+  }
+
+  /* Purple outlines vanish on purple surfaces; switch to white there. */
+  .on-dark :focus-visible {
+    outline-color: #ffffff;
+  }
+
+  ::selection {
+    background: var(--color-brand-200);
+    color: var(--color-brand-900);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ------------------------------------------------------------------
+   Scroll reveal — pure CSS, progressive enhancement.
+   Content is always visible where scroll-driven animations are
+   unsupported, JS fails, or the user prefers reduced motion.
+   ------------------------------------------------------------------ */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scale only: text stays fully opaque (and at full contrast) throughout. */
+@keyframes reveal-scale {
+  from {
+    transform: scale(0.94);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes parallax-shift {
+  from {
+    transform: translateY(var(--parallax, 40px));
+  }
+  to {
+    transform: translateY(calc(var(--parallax, 40px) * -1));
+  }
+}
+
+@keyframes progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Earlier stack cards recede as the next one slides over them. */
+@keyframes stack-press {
+  to {
+    transform: scale(var(--stack-scale, 0.9));
+  }
+}
+
+.scroll-progress {
+  display: none;
+}
+
+/* Above-the-fold entrance: transform only, so content is never invisible. */
+@keyframes rise-in {
+  from {
+    transform: translateY(20px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+
+    .reveal-scale {
+      animation: reveal-scale linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+    }
+
+    .parallax {
+      animation: parallax-shift linear both;
+      animation-timeline: view();
+    }
+
+    .scroll-progress {
+      display: block;
+      transform-origin: left;
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    .stack {
+      view-timeline-name: --stack;
+    }
+
+    .stack-card {
+      transform-origin: top center;
+      animation: stack-press linear both;
+      animation-timeline: --stack;
+      animation-range: contain var(--stack-from, 0%) contain 100%;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------
+   Pointer spotlight on cards (position set by <SpotlightTracker />).
+   ------------------------------------------------------------------ */
+.spotlight {
+  --spot: rgb(139 92 246 / 0.14);
+  /* Own stacking context so the glow sits above the background, below content. */
+  isolation: isolate;
+}
+
+.spotlight-light {
+  --spot: rgb(255 255 255 / 0.18);
+}
+
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), var(--spot), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Light sweep across call-to-action buttons on hover. */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.shine:hover::after {
+  transform: translateX(120%);
+}
+
+/* Frosted glass surface; solid fallback where backdrop-filter is unsupported. */
+.glass {
+  background: rgb(255 255 255 / 0.95);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.7),
+    0 16px 40px rgb(76 29 149 / 0.12);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .glass {
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: blur(16px) saturate(160%);
+  }
 }

@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sanggar Senam Danie
 
-## Getting Started
+Website + CMS for Sanggar Senam Danie, a fitness studio in Tapos, Depok.
+Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui (Base UI) · Framer Motion · Supabase.
 
-First, run the development server:
+Architecture, ERD and design tokens: [docs/PLAN.md](docs/PLAN.md) · Audit results: [docs/AUDIT.md](docs/AUDIT.md)
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in what you have; everything is optional for a preview
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without Supabase credentials the public site runs on bundled content ([src/lib/content/fallback.ts](src/lib/content/fallback.ts)),
+and the studio-rental form shows a "contact us on WhatsApp" message instead of saving.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Joining a class has no form: every "Gabung" button opens WhatsApp (+62 889-7535-1853) with a prefilled message
+([src/lib/utils/whatsapp.ts](src/lib/utils/whatsapp.ts)).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Connect Supabase
 
-## Learn More
+1. Create a Supabase project and copy the URL and anon key into `.env.local`.
+2. Run the migrations in [supabase/migrations/](supabase/migrations/) in order, then [supabase/seed.sql](supabase/seed.sql)
+   (SQL Editor, or `supabase db push` + `supabase db seed` with the CLI).
+3. Create the admin user in **Authentication → Users**, then promote it:
+   ```sql
+   update public.profiles set role = 'admin'
+   where id = (select id from auth.users where email = 'admin@example.com');
+   ```
+4. Sign in at `/admin/login`.
 
-To learn more about Next.js, take a look at the following resources:
+## Before going live
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| What | Where |
+|------|-------|
+| **Production domain** (canonical URLs, sitemap, OG — the build warns until set) | `NEXT_PUBLIC_SITE_URL` |
+| Google Business Profile, Search Console, reviews | see "Off-site work" in [docs/AUDIT.md](docs/AUDIT.md) |
+| Danie's photo | `/admin/instructors` → Danie → Foto |
+| Collage, class and studio photos, WhatsApp, address, founder profile | `/admin/settings` (Pengaturan Situs) |
+| Weekly schedule | `/admin/schedules` — the site shows "ask via WhatsApp" until entries exist |
+| Testimonials (with participants' permission) | `/admin/testimonials` — section is hidden until one is published |
+| Certificate scans, issuers, years | `/admin/certificates` |
+| Stats (500+ peserta), FAQ, brand pillars, studio uses | `/admin/stats`, `/admin/faqs`, `/admin/pillars`, `/admin/rentalUses` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Admin
 
-## Deploy on Vercel
+Everything visible on the public site is editable at `/admin`; each save refreshes the affected pages immediately.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Menu | Manages |
+|------|---------|
+| Dashboard, Sewa Studio | Rental requests: status, edit, delete, add phone/WhatsApp requests by hand |
+| Program, Jadwal, Instruktur, Sertifikat, Testimoni, Artikel | Class content (Markdown articles, image uploads) |
+| FAQ, Statistik, Janji Brand, Kegunaan Studio | Home-page sections |
+| Pengaturan Situs | WhatsApp number, address & map, founding date, founder profile, tagline, SEO description, photos |
+| Pengguna | Promote accounts to admin (create the account first in Supabase → Authentication) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Rental requesters can follow their request at `/cek-status` with the reference code they receive.
+
+## Scripts
+
+`npm run dev` · `npm run build` · `npm run start` · `npm run lint`
