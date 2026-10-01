@@ -12,12 +12,14 @@ import { WhatsAppButton } from "@/components/molecules/whatsapp-button"
 import { BrandSection } from "@/components/sections/brand-section"
 import { CtaSection } from "@/components/sections/cta-section"
 import { PageHero } from "@/components/sections/page-hero"
-import { StatsSection } from "@/components/sections/stats-section"
+import { FactsSection } from "@/components/sections/facts-section"
 import { getCertificates } from "@/features/certificates/queries"
-import { getPillars, getStats } from "@/features/content/queries"
+import { getPillars } from "@/features/content/queries"
 import { getFounder } from "@/features/instructors/queries"
+import { getPrograms } from "@/features/programs/queries"
 import { getSettings } from "@/features/settings/queries"
 import { site } from "@/lib/content/site"
+import { studioFacts } from "@/lib/seo/facts"
 import { founderJsonLd } from "@/lib/seo/jsonld"
 import { pageMetadata } from "@/lib/seo/metadata"
 import { whatsappLink, whatsappMessages } from "@/lib/utils/whatsapp"
@@ -32,15 +34,16 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
-  const [settings, founder, certificates, stats, pillars] = await Promise.all([
+  const [settings, founder, certificates, programs, pillars] = await Promise.all([
     getSettings(),
     getFounder(),
     getCertificates(),
-    getStats(),
+    getPrograms(),
     getPillars(),
   ])
   const photo = founder.photo_url
   const joinHref = whatsappLink(settings.whatsapp, whatsappMessages.join)
+  const { definition, facts } = studioFacts(settings, programs)
 
   return (
     <>
@@ -100,11 +103,11 @@ export default async function AboutPage() {
         </Container>
       </Section>
 
-      <StatsSection stats={stats} />
+      <FactsSection definition={definition} facts={facts} />
 
-      <BrandSection pillars={pillars} tone="soft" />
+      <BrandSection pillars={pillars} />
 
-      <Section aria-labelledby="cert-title">
+      <Section tone="soft" aria-labelledby="cert-title">
         <Container className="flex flex-col gap-10">
           <SectionHeader id="cert-title" eyebrow="Sertifikasi" title="Kredensial Danie" />
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

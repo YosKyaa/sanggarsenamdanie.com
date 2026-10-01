@@ -44,7 +44,7 @@ export default async function HomePage() {
     <>
       {/* Attention */}
       <HeroSection settings={settings} founderPhoto={founder?.photo_url ?? null} whatsappHref={joinHref} />
-      <StatsSection stats={stats} variant="floating" />
+      <StatsSection stats={stats} />
       {/* Interest */}
       <LazyMarquee primary={programs.map((p) => p.title)} secondary={pillars.map((p) => p.word)} />
       <ProgramSection programs={programs} whatsappHref={whatsappLink(settings.whatsapp, whatsappMessages.schedule)} />

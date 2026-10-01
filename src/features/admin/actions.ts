@@ -4,8 +4,10 @@ import { randomUUID } from "node:crypto"
 
 import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
+import { after } from "next/server"
 
 import { formValues, type ActionResult, type FormState } from "@/lib/forms"
+import { pathsForResource, pingIndexNow } from "@/lib/seo/indexnow"
 import { supabaseUrl } from "@/lib/supabase/env"
 import { createReferenceCode } from "@/lib/utils/reference"
 import { fieldErrorsOf } from "@/lib/validation"
@@ -113,6 +115,7 @@ export async function saveResource(
   }
 
   revalidateResource(resource)
+  after(() => pingIndexNow(pathsForResource(resource.key, payload)))
   redirect(`/admin/${resource.key}?notice=${id ? "saved" : "created"}`)
 }
 
@@ -173,6 +176,7 @@ export async function addGalleryPhotos(
 
   revalidateTag("gallery")
   revalidatePath("/admin/gallery")
+  after(() => pingIndexNow(["/galeri"]))
   return { ok: true, message: `${valid.length} foto ditambahkan ke galeri.` }
 }
 

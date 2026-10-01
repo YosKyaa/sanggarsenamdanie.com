@@ -15,7 +15,7 @@ import { getArticleBySlug, getArticles } from "@/features/articles/queries"
 import { getPrograms } from "@/features/programs/queries"
 import { getSettings } from "@/features/settings/queries"
 import { site } from "@/lib/content/site"
-import { articleJsonLd, breadcrumbJsonLd } from "@/lib/seo/jsonld"
+import { articleJsonLd, breadcrumbJsonLd, isFounderAuthor } from "@/lib/seo/jsonld"
 import { formatDate, readingMinutes } from "@/lib/utils/format"
 import { whatsappLink, whatsappMessages } from "@/lib/utils/whatsapp"
 
@@ -61,6 +61,8 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
   if (!article) notFound()
 
   const date = article.published_at ?? article.created_at
+  // Show "Diperbarui" only for real revisions, not the save right after publishing.
+  const updated = new Date(article.updated_at).getTime() - new Date(date).getTime() > 24 * 60 * 60 * 1000
   const program = programs.find((p) => p.id === article.program_id) ?? null
   const related = articles.filter((a) => a.id !== article.id).slice(0, 3)
   const whatsappHref = whatsappLink(
@@ -90,9 +92,23 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
             </Heading>
             <Text size="lead">{article.excerpt}</Text>
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted">
-              <span className="font-semibold text-ink">{article.author_name}</span>
+              {isFounderAuthor(article, settings.founder.name) ? (
+                <Link href="/about" rel="author" className="font-semibold text-ink hover:text-brand-700 hover:underline">
+                  {article.author_name}
+                </Link>
+              ) : (
+                <span className="font-semibold text-ink">{article.author_name}</span>
+              )}
               <span aria-hidden>·</span>
               <time dateTime={date}>{formatDate(date)}</time>
+              {updated ? (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>
+                    Diperbarui <time dateTime={article.updated_at}>{formatDate(article.updated_at)}</time>
+                  </span>
+                </>
+              ) : null}
               <span aria-hidden>·</span>
               <span className="flex items-center gap-1">
                 <Clock aria-hidden className="size-4" />
@@ -151,7 +167,7 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
 
       <ArticleSection articles={related} eyebrow="Baca juga" title="Artikel Lainnya" tone="soft" />
 
-      <JsonLd data={articleJsonLd(article)} />
+      <JsonLd data={articleJsonLd(article, settings.founder.name)} />
       <JsonLd data={breadcrumbJsonLd(trail)} />
     </>
   )

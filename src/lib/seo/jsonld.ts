@@ -31,6 +31,13 @@ export function localBusinessJsonLd(
     logo: logoUrl,
     image: founderPhoto || `${site.url}/opengraph-image`,
     telephone: `+${settings.whatsapp}`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      telephone: `+${settings.whatsapp}`,
+      url: `https://wa.me/${settings.whatsapp}`,
+      availableLanguage: ["id"],
+    },
     hasMap: settings.googleMapsUrl ?? mapsUrl(settings.mapsQuery),
     ...(settings.geo ? { geo: { "@type": "GeoCoordinates", ...settings.geo } } : {}),
     ...(settings.openingHours.length ? { openingHours: settings.openingHours } : {}),
@@ -134,7 +141,8 @@ export function programJsonLd(program: ProgramRow) {
   }
 }
 
-export function articleJsonLd(article: ArticleRow) {
+/** Articles written by the founder point at her Person entity (E-E-A-T); others at the studio. */
+export function articleJsonLd(article: ArticleRow, founderName: string) {
   const url = `${site.url}/artikel/${article.slug}`
   return {
     "@context": "https://schema.org",
@@ -148,7 +156,9 @@ export function articleJsonLd(article: ArticleRow) {
     datePublished: article.published_at ?? article.created_at,
     dateModified: article.updated_at,
     inLanguage: "id-ID",
-    author: { "@type": "Organization", name: article.author_name, url: site.url },
+    author: isFounderAuthor(article, founderName)
+      ? { "@type": "Person", "@id": founderId, name: founderName, url: `${site.url}/about` }
+      : { "@type": "Organization", name: article.author_name, url: site.url },
     publisher: { "@id": businessId, "@type": "Organization", name: site.name, logo: { "@type": "ImageObject", url: logoUrl } },
   }
 }
@@ -171,6 +181,10 @@ export function galleryJsonLd(photos: GalleryPhotoRow[]) {
       copyrightHolder: { "@id": businessId },
     })),
   }
+}
+
+export function isFounderAuthor(article: Pick<ArticleRow, "author_name">, founderName: string) {
+  return article.author_name.toLowerCase().includes(founderName.toLowerCase())
 }
 
 export function faqJsonLd(faqs: readonly { question: string; answer: string }[]) {
