@@ -27,6 +27,8 @@ export type FieldConfig = {
   rows?: number
   /** Starts a titled group in the form (long forms like site settings). */
   section?: string
+  /** Input step for number fields ("any" allows decimals, e.g. coordinates). */
+  step?: string
 }
 
 export type ColumnConfig = {
@@ -54,6 +56,7 @@ export type ResourceConfig = {
     | "stats"
     | "brand_pillars"
     | "rental_uses"
+    | "bio_links"
     | "studio_rental_requests"
     | "site_settings"
   label: string
@@ -85,6 +88,7 @@ export type ResourceKey =
   | "stats"
   | "pillars"
   | "rentalUses"
+  | "bioLinks"
   | "rentals"
   | "settings"
 
@@ -485,6 +489,53 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
       { name: "message", label: "Detail acara", type: "textarea", wide: true },
     ],
   },
+  bioLinks: {
+    key: "bioLinks",
+    table: "bio_links",
+    label: "Link Bio",
+    singular: "link",
+    description: "Tombol di halaman /bio untuk link di bio Instagram. Tombol WhatsApp di paling atas sudah otomatis.",
+    tags: ["bio-links"],
+    orderBy: [{ column: "sort_order", ascending: true }],
+    columns: [
+      { name: "title", label: "Judul" },
+      { name: "url", label: "Tujuan", format: "text" },
+      { name: "is_active", label: "Tampil", format: "boolean", labels: { yes: "Tampil", no: "Disembunyikan" } },
+    ],
+    fields: [
+      { name: "title", label: "Judul tombol", type: "text", required: true, hint: "Singkat, mis. Jadwal Kelas" },
+      { name: "subtitle", label: "Keterangan kecil", type: "text", hint: "Opsional, mis. Aerobic, Zumba, Yoga" },
+      {
+        name: "url",
+        label: "Tujuan link",
+        type: "text",
+        required: true,
+        wide: true,
+        hint: "Halaman website diawali / (mis. /program), atau link lengkap https://…",
+      },
+      {
+        name: "icon",
+        label: "Ikon",
+        type: "select",
+        required: true,
+        options: [
+          { value: "calendar", label: "Kalender" },
+          { value: "map-pin", label: "Lokasi" },
+          { value: "building", label: "Gedung" },
+          { value: "book", label: "Buku/artikel" },
+          { value: "user", label: "Orang" },
+          { value: "globe", label: "Website" },
+          { value: "star", label: "Bintang" },
+          { value: "gift", label: "Promo" },
+          { value: "play", label: "Video" },
+          { value: "link", label: "Link" },
+        ],
+      },
+      { name: "is_highlighted", label: "Tonjolkan (warna ungu)", type: "boolean" },
+      sortField,
+      activeField,
+    ],
+  },
   settings: {
     key: "settings",
     table: "site_settings",
@@ -557,6 +608,33 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
       { name: "organization", label: "Organisasi", type: "text", hint: "Mis. IOSKI Depok. Kosongkan bila tidak ada." },
       { name: "organization_long", label: "Nama lengkap organisasi", type: "text" },
       { name: "organization_role", label: "Peran di organisasi", type: "text", hint: "Mis. Sekretaris" },
+      {
+        section: "Media sosial & Google",
+        name: "google_maps_url",
+        label: "Link Google Maps / Google Business Profile",
+        type: "text",
+        hint: "Buka profil sanggar di Google Maps → Bagikan → salin link. Dipakai untuk tombol arah & SEO lokal.",
+        wide: true,
+      },
+      { name: "tiktok_url", label: "Link TikTok", type: "text", hint: "https://tiktok.com/@…" },
+      { name: "facebook_url", label: "Link Facebook", type: "text", hint: "https://facebook.com/…" },
+      { name: "youtube_url", label: "Link YouTube", type: "text", hint: "https://youtube.com/@…" },
+      {
+        name: "latitude",
+        label: "Latitude",
+        type: "number",
+        step: "any",
+        hint: "Di Google Maps, klik kanan titik sanggar → angka pertama, mis. -6.4012",
+      },
+      { name: "longitude", label: "Longitude", type: "number", step: "any", hint: "Angka kedua, mis. 106.8714" },
+      {
+        section: "Jam operasional",
+        name: "opening_hours",
+        label: "Jam buka",
+        type: "tags",
+        wide: true,
+        hint: "Satu baris per hari/rentang, format Google: Mo-Fr 06:00-20:00 atau Sa 07:00-12:00 (Mo Tu We Th Fr Sa Su). Tampil di website & Google.",
+      },
       {
         section: "Foto",
         name: "founder_photo_2_url",

@@ -5,6 +5,7 @@ import { z } from "zod"
 import { programIcons } from "@/components/atoms/icon"
 import { nameSchema, phoneSchema } from "@/features/rentals/schema"
 import { weekdays } from "@/lib/utils/format"
+import { openingHoursPattern } from "@/lib/utils/hours"
 
 import type { ResourceKey } from "./resources"
 
@@ -38,6 +39,17 @@ const lines = z
       .filter(Boolean),
   )
 const imageUrl = optionalText(1000)
+const httpUrl = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => v || null)
+  .refine((v) => v === null || /^https?:\/\//.test(v), "Awali dengan https://")
+const coordinate = (limit: number) =>
+  z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    z.coerce.number({ message: "Isi angka, mis. -6.4012" }).min(-limit).max(limit).nullable(),
+  )
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pilih tanggal.")
 
 export const resourceSchemas = {
@@ -169,5 +181,26 @@ export const resourceSchemas = {
     founder_photo_2_url: imageUrl,
     class_photo_url: imageUrl,
     studio_photo_url: imageUrl,
+    google_maps_url: httpUrl,
+    tiktok_url: httpUrl,
+    facebook_url: httpUrl,
+    youtube_url: httpUrl,
+    latitude: coordinate(90),
+    longitude: coordinate(180),
+    opening_hours: lines.refine((entries) => entries.every((e) => openingHoursPattern.test(e)), {
+      message: "Gunakan format seperti Mo-Fr 06:00-20:00 (satu per baris).",
+    }),
+  }),
+  bioLinks: z.object({
+    title: z.string().trim().min(2, "Minimal 2 karakter.").max(60),
+    subtitle: optionalText(80),
+    url: z
+      .string()
+      .trim()
+      .refine((v) => v.startsWith("/") || /^https?:\/\//.test(v), "Awali dengan / atau https://"),
+    icon: z.enum(["calendar", "map-pin", "building", "book", "user", "globe", "star", "gift", "play", "link"]),
+    is_highlighted: checkbox,
+    sort_order: intIn(0, 999).catch(0),
+    is_active: checkbox,
   }),
 } satisfies Record<ResourceKey, z.ZodType>

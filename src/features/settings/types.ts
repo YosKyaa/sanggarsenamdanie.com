@@ -4,6 +4,12 @@ import type { SiteSettingsRow } from "@/types/database"
 export type SiteSettings = {
   whatsapp: string
   instagram: string
+  /** Every public profile of the studio (schema.org sameAs, footer, /bio). */
+  socials: { platform: "instagram" | "tiktok" | "facebook" | "youtube"; url: string }[]
+  googleMapsUrl: string | null
+  geo: { latitude: number; longitude: number } | null
+  /** schema.org format, e.g. "Mo-Fr 06:00-20:00". */
+  openingHours: string[]
   responseTime: string
   tagline: string
   description: string
@@ -40,6 +46,21 @@ export function toSiteSettings(row: SiteSettingsRow): SiteSettings {
   return {
     whatsapp: row.whatsapp,
     instagram: row.instagram_url ?? "",
+    // `?? null` keeps working before migration 0006 adds these columns.
+    socials: (
+      [
+        ["instagram", row.instagram_url],
+        ["tiktok", row.tiktok_url],
+        ["facebook", row.facebook_url],
+        ["youtube", row.youtube_url],
+      ] as const
+    ).flatMap(([platform, url]) => (url ? [{ platform, url }] : [])),
+    googleMapsUrl: row.google_maps_url ?? null,
+    geo:
+      row.latitude != null && row.longitude != null
+        ? { latitude: Number(row.latitude), longitude: Number(row.longitude) }
+        : null,
+    openingHours: row.opening_hours ?? [],
     responseTime: row.response_time,
     tagline: row.tagline,
     description: row.description,

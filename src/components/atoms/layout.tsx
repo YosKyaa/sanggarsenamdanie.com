@@ -7,7 +7,7 @@ export function Container({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("mx-auto w-full max-w-[1200px] px-4 sm:px-6 xl:px-0", className)} {...props} />
 }
 
-const sectionVariants = cva("relative py-16 lg:py-[100px]", {
+const sectionVariants = cva("relative py-20 sm:py-24 lg:py-32", {
   variants: {
     tone: {
       default: "bg-white",

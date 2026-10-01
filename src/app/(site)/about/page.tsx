@@ -102,7 +102,7 @@ export default async function AboutPage() {
 
       <StatsSection stats={stats} />
 
-      <BrandSection settings={settings} pillars={pillars} tone="soft" />
+      <BrandSection pillars={pillars} tone="soft" />
 
       <Section aria-labelledby="cert-title">
         <Container className="flex flex-col gap-10">

@@ -3,14 +3,14 @@ import { MapPin, Navigation } from "lucide-react"
 import { ButtonLink } from "@/components/atoms/button"
 import { Container, Section } from "@/components/atoms/layout"
 import { Eyebrow, Heading, Text } from "@/components/atoms/typography"
+import { OpeningHours } from "@/components/molecules/opening-hours"
 import { WhatsAppButton } from "@/components/molecules/whatsapp-button"
 import type { SiteSettings } from "@/features/settings/types"
 import { site } from "@/lib/content/site"
+import { mapLinks } from "@/lib/utils/maps"
 
 export function LocationSection({ settings, whatsappHref }: { settings: SiteSettings; whatsappHref: string }) {
-  const query = encodeURIComponent(settings.mapsQuery)
-  const embedSrc = `https://maps.google.com/maps?q=${query}&z=15&output=embed`
-  const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${query}`
+  const { embedSrc, directionsHref } = mapLinks(settings)
 
   return (
     <Section aria-labelledby="location-title">
@@ -32,6 +32,7 @@ export function LocationSection({ settings, whatsappHref }: { settings: SiteSett
               </span>
             </span>
           </address>
+          <OpeningHours entries={settings.openingHours} />
           <Text size="small">Lokasi kelas air (Aquarobic & Aquayoga) tercantum pada jadwal masing-masing kelas.</Text>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href={directionsHref} external>

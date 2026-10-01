@@ -8,6 +8,7 @@ import {
   CircleHelp,
   Dumbbell,
   LayoutDashboard,
+  Link2,
   ListChecks,
   Loader2,
   MessageSquareQuote,
@@ -49,6 +50,7 @@ const groups = [
       { href: "/admin/stats", label: "Statistik", icon: ChartNoAxesColumn },
       { href: "/admin/pillars", label: "Janji Brand", icon: Sparkles },
       { href: "/admin/rentalUses", label: "Kegunaan Studio", icon: ListChecks },
+      { href: "/admin/bioLinks", label: "Link Bio", icon: Link2 },
     ],
   },
   {

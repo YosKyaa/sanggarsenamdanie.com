@@ -3,7 +3,7 @@
  * (or a table is still empty) and mirrored in supabase/seed.sql, so the site
  * looks the same before and after the first admin edit.
  */
-import type { BrandPillarRow, FaqRow, RentalUseRow, SiteSettingsRow, StatRow } from "@/types/database"
+import type { BioLinkRow, BrandPillarRow, FaqRow, RentalUseRow, SiteSettingsRow, StatRow } from "@/types/database"
 
 const stamp = { created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" }
 
@@ -34,6 +34,13 @@ export const defaultSettingsRow: SiteSettingsRow = {
   founder_photo_2_url: null,
   class_photo_url: null,
   studio_photo_url: null,
+  tiktok_url: null,
+  facebook_url: null,
+  youtube_url: null,
+  google_maps_url: null,
+  latitude: null,
+  longitude: null,
+  opening_hours: [],
   updated_at: stamp.updated_at,
 }
 
@@ -121,4 +128,17 @@ export const defaultFaqs: FaqRow[] = rows(
     },
   ],
   "faq",
+)
+
+/** Links on /bio (Instagram "link in bio"); the WhatsApp button above them is built in. */
+export const defaultBioLinks: BioLinkRow[] = rows(
+  [
+    { title: "Program & Jadwal Kelas", subtitle: "Aerobic, Zumba, Yoga, Aquarobic, Aquayoga", url: "/program", icon: "calendar", is_highlighted: true },
+    { title: "Lokasi Sanggar", subtitle: "Sukamaju Baru, Tapos, Depok", url: "/contact#location-title", icon: "map-pin", is_highlighted: false },
+    { title: "Sewa Studio", subtitle: "Kelas privat, komunitas, dan acara", url: "/rental", icon: "building", is_highlighted: false },
+    { title: "Tips Sehat & Artikel", subtitle: "Panduan senam untuk pemula", url: "/artikel", icon: "book", is_highlighted: false },
+    { title: "Kenali Danie", subtitle: "Pendiri & instruktur bersertifikat", url: "/about", icon: "user", is_highlighted: false },
+    { title: "Website Lengkap", subtitle: "sanggarsenamdanie.com", url: "/", icon: "globe", is_highlighted: false },
+  ],
+  "bio-link",
 )

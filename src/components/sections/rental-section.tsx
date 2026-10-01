@@ -19,18 +19,25 @@ type RentalSectionProps = {
 }
 
 export function RentalSection({ settings, uses, showCta = true }: RentalSectionProps) {
-  return (
-    <Section aria-labelledby="rental-title">
-      <Container className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-        <div className="flex flex-col gap-6">
-          <Eyebrow>Sewa Studio</Eyebrow>
-          <Heading id="rental-title">
-            Studio Untuk Aktivitas Anda
-          </Heading>
-          <Text size="lead">
-            Ruang latihan yang bersih dan nyaman di Tapos, Depok — siap dipakai untuk kelas privat, kegiatan komunitas,
-            hingga acara kesehatan.
-          </Text>
+  const photo = settings.photos.studio
+
+  const intro = (
+    <div className="flex flex-col gap-6">
+      <Eyebrow>Sewa Studio</Eyebrow>
+      <Heading id="rental-title">Sewa Studio Senam di Tapos, Depok</Heading>
+      <Text size="lead">
+        Ruang latihan yang bersih dan nyaman — siap dipakai untuk kelas privat, kegiatan komunitas, hingga acara
+        kesehatan.
+      </Text>
+      {showCta ? (
+        <ButtonLink href="/rental" size="lg" className="shine self-start">
+          Booking Studio
+        </ButtonLink>
+      ) : null}
+    </div>
+  )
+
+  const list = (
           <ul className="grid gap-4 sm:grid-cols-2">
             {uses.map((use, index) => {
               const Icon = icons[index % icons.length]
@@ -47,18 +54,33 @@ export function RentalSection({ settings, uses, showCta = true }: RentalSectionP
               )
             })}
           </ul>
-          {showCta ? (
-            <ButtonLink href="/rental" size="lg" className="shine self-start">
-              Booking Studio
-            </ButtonLink>
-          ) : null}
+  )
+
+  // Without a studio photo the uses take the second column instead of an empty frame.
+  if (!photo) {
+    return (
+      <Section aria-labelledby="rental-title">
+        <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
+          {intro}
+          {list}
+        </Container>
+      </Section>
+    )
+  }
+
+  return (
+    <Section aria-labelledby="rental-title">
+      <Container className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+        <div className="flex flex-col gap-10">
+          {intro}
+          {list}
         </div>
 
         <Reveal className="relative">
           <div aria-hidden className="absolute -inset-4 -z-0 rounded-[32px] bg-brand-50 lg:-inset-6" />
           <Parallax distance={30}>
             <Portrait
-              src={settings.photos.studio}
+              src={photo}
               alt="Ruang studio Sanggar Senam Danie"
               sizes="(min-width: 1024px) 560px, 100vw"
               placeholderLabel="Foto studio"

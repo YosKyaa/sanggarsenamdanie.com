@@ -3,6 +3,8 @@ import Link from "next/link"
 
 import { Container } from "@/components/atoms/layout"
 import { Logo } from "@/components/atoms/logo"
+import { SocialIcon, socialLabel } from "@/components/atoms/social-icon"
+import { OpeningHours } from "@/components/molecules/opening-hours"
 import type { SiteSettings } from "@/features/settings/types"
 import { navItems, site } from "@/lib/content/site"
 import { formatPhone } from "@/lib/utils/phone"
@@ -27,6 +29,23 @@ export function Footer({ settings, programs }: FooterProps) {
             Studio senam di Depok untuk hidup yang lebih sehat, aktif, dan bahagia — bersama komunitas yang mendukung
             Anda.
           </p>
+          {settings.socials.length ? (
+            <ul className="flex gap-2 pt-1">
+              {settings.socials.map((social) => (
+                <li key={social.platform}>
+                  <a
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer me"
+                    aria-label={`${socialLabel[social.platform]} ${site.name} (membuka tab baru)`}
+                    className="grid size-10 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                  >
+                    <SocialIcon platform={social.platform} className="size-5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <nav aria-labelledby="footer-nav">
@@ -79,6 +98,7 @@ export function Footer({ settings, programs }: FooterProps) {
               <span className="sr-only"> (membuka tab baru)</span>
             </a>
           </address>
+          <OpeningHours entries={settings.openingHours} tone="inverse" className="mt-4 [&_dd]:text-brand-100/85 [&_svg]:size-4" />
         </div>
       </Container>
 

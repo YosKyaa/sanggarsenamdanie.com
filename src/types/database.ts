@@ -94,7 +94,26 @@ export type SiteSettingsRow = {
   founder_photo_2_url: string | null
   class_photo_url: string | null
   studio_photo_url: string | null
+  tiktok_url: string | null
+  facebook_url: string | null
+  youtube_url: string | null
+  google_maps_url: string | null
+  latitude: number | null
+  longitude: number | null
+  opening_hours: string[]
   updated_at: string
+}
+
+export type BioLinkRow = Timestamps & {
+  id: string
+  title: string
+  subtitle: string | null
+  /** Absolute URL or a site path starting with "/". */
+  url: string
+  icon: string
+  is_highlighted: boolean
+  sort_order: number
+  is_active: boolean
 }
 
 export type FaqRow = Timestamps & {
@@ -242,7 +261,24 @@ export type Database = {
         ArticleRow,
         InsertOf<ArticleRow, AutoCols | "cover_image_url" | "program_id" | "author_name" | "is_published" | "published_at">
       >
-      site_settings: Table<SiteSettingsRow, InsertOf<SiteSettingsRow, "id" | "updated_at" | "response_time" | "credentials">>
+      site_settings: Table<
+        SiteSettingsRow,
+        InsertOf<
+          SiteSettingsRow,
+          | "id"
+          | "updated_at"
+          | "response_time"
+          | "credentials"
+          | "tiktok_url"
+          | "facebook_url"
+          | "youtube_url"
+          | "google_maps_url"
+          | "latitude"
+          | "longitude"
+          | "opening_hours"
+        >
+      >
+      bio_links: Table<BioLinkRow, InsertOf<BioLinkRow, AutoCols | "subtitle" | "icon" | "is_highlighted" | "sort_order" | "is_active">>
       faqs: Table<FaqRow, InsertOf<FaqRow, AutoCols | "sort_order" | "is_active">>
       stats: Table<StatRow, InsertOf<StatRow, AutoCols | "suffix" | "count_up" | "sort_order" | "is_active">>
       brand_pillars: Table<BrandPillarRow, InsertOf<BrandPillarRow, AutoCols | "sort_order" | "is_active">>

@@ -14,12 +14,12 @@ type ProgramSectionProps = {
 
 export function ProgramSection({ programs, whatsappHref }: ProgramSectionProps) {
   return (
-    <Section id="program" tone="soft" aria-labelledby="program-title">
+    <Section id="program" aria-labelledby="program-title">
       <Container className="flex flex-col gap-10 lg:gap-14">
         <SectionHeader
           id="program-title"
           eyebrow="Program Kami"
-          title="Program Senam Kami"
+          title="Kelas Senam di Depok untuk Setiap Tujuan"
           description="Lima kelas untuk berbagai tujuan dan kondisi tubuh — dari kardio yang energik hingga latihan air yang ramah sendi."
         />
 

@@ -8,6 +8,11 @@ const founderId = `${site.url}/about#danie`
 const logoUrl = `${site.url}/icon.svg`
 const mapsUrl = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 
+/** Profiles that are the same business — lets Google tie the site to IG, Maps, etc. */
+function sameAs(settings: SiteSettings) {
+  return [...settings.socials.map((s) => s.url), ...(settings.googleMapsUrl ? [settings.googleMapsUrl] : [])]
+}
+
 export function localBusinessJsonLd(
   settings: SiteSettings,
   programs: Pick<ProgramRow, "title" | "slug" | "summary">[],
@@ -25,7 +30,9 @@ export function localBusinessJsonLd(
     logo: logoUrl,
     image: founderPhoto || `${site.url}/opengraph-image`,
     telephone: `+${settings.whatsapp}`,
-    hasMap: mapsUrl(settings.mapsQuery),
+    hasMap: settings.googleMapsUrl ?? mapsUrl(settings.mapsQuery),
+    ...(settings.geo ? { geo: { "@type": "GeoCoordinates", ...settings.geo } } : {}),
+    ...(settings.openingHours.length ? { openingHours: settings.openingHours } : {}),
     address: {
       "@type": "PostalAddress",
       streetAddress: `${settings.address.street}, Kec. ${settings.address.district}`,
@@ -51,7 +58,7 @@ export function localBusinessJsonLd(
         },
       ],
     },
-    ...(settings.instagram ? { sameAs: [settings.instagram] } : {}),
+    ...(sameAs(settings).length ? { sameAs: sameAs(settings) } : {}),
   }
 }
 

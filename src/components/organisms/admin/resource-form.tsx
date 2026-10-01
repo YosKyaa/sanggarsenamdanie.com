@@ -134,7 +134,7 @@ export function ResourceForm({ resourceKey, action, initialValues, relationOptio
                       case "tags":
                         return <Textarea {...p} defaultValue={value} rows={field.rows ?? (field.type === "tags" ? 5 : 4)} />
                       case "number":
-                        return <Input {...p} type="number" inputMode="numeric" defaultValue={value} />
+                        return <Input {...p} type="number" inputMode={field.step ? "decimal" : "numeric"} step={field.step} defaultValue={value} />
                       case "date":
                         return <Input {...p} type="date" defaultValue={value} />
                       case "time":
