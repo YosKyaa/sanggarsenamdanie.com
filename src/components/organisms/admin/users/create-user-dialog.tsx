@@ -40,7 +40,8 @@ export function CreateUserDialog({ disabled }: { disabled?: boolean }) {
         <DialogHeader>
           <DialogTitle>Tambah pengguna</DialogTitle>
           <DialogDescription>
-            Akun langsung aktif tanpa verifikasi email. Berikan email dan password ini ke orang tersebut.
+            Akun langsung aktif tanpa verifikasi email. Berikan email dan password ini ke orang tersebut — jika emailnya
+            akun Google (Gmail), orang tersebut juga bisa masuk lewat tombol “Masuk dengan Google”.
           </DialogDescription>
         </DialogHeader>
         <CreateUserForm key={formKey} onDone={() => setOpen(false)} />

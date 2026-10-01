@@ -1,11 +1,15 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
+import { site } from "@/lib/content/site"
 import { formValues, type FormState } from "@/lib/forms"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { createSessionClient } from "@/lib/supabase/server"
+
+import { safeNext } from "./next-path"
 
 const loginSchema = z.object({
   email: z.email("Masukkan email yang valid."),
@@ -28,8 +32,31 @@ export async function signIn(_prev: FormState<"email">, formData: FormData): Pro
     return { status: "error", message: "Email atau kata sandi salah.", values: { email: values.email } }
   }
 
-  const next = typeof values.next === "string" && values.next.startsWith("/admin") ? values.next : "/admin"
-  redirect(next)
+  redirect(safeNext(values.next))
+}
+
+/**
+ * Starts Google sign-in. Google returns to /auth/callback, which only lets
+ * accounts an admin registered (same email) into the panel.
+ */
+export async function signInWithGoogle(formData: FormData) {
+  if (!isSupabaseConfigured) redirect("/admin/login?error=oauth")
+
+  // Return to the host the visitor is on (production, preview or localhost).
+  const origin = (await headers()).get("origin") ?? site.url
+  const next = safeNext(formData.get("next"))
+
+  const supabase = await createSessionClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      // Let people with several Google accounts pick the right one.
+      queryParams: { prompt: "select_account" },
+    },
+  })
+  if (error || !data.url) redirect("/admin/login?error=oauth")
+  redirect(data.url)
 }
 
 export async function signOut() {

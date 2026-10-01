@@ -38,7 +38,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isLogin) {
+  // A signed-in account without panel access is sent to login with an error;
+  // bouncing it back to /admin would loop.
+  if (user && isLogin && !request.nextUrl.searchParams.has("error")) {
     return NextResponse.redirect(new URL("/admin", request.url))
   }
 
