@@ -104,6 +104,20 @@ export type SiteSettingsRow = {
   updated_at: string
 }
 
+export type GalleryCategory = "kelas" | "event" | "komunitas" | "studio"
+
+export type GalleryPhotoRow = Timestamps & {
+  id: string
+  image_url: string
+  caption: string | null
+  category: GalleryCategory
+  taken_at: string | null
+  /** Pixel size after the browser resize; null for photos added through the single-photo form. */
+  width: number | null
+  height: number | null
+  is_active: boolean
+}
+
 export type BioLinkRow = Timestamps & {
   id: string
   title: string
@@ -279,6 +293,10 @@ export type Database = {
         >
       >
       bio_links: Table<BioLinkRow, InsertOf<BioLinkRow, AutoCols | "subtitle" | "icon" | "is_highlighted" | "sort_order" | "is_active">>
+      gallery_photos: Table<
+        GalleryPhotoRow,
+        InsertOf<GalleryPhotoRow, AutoCols | "caption" | "category" | "taken_at" | "width" | "height" | "is_active">
+      >
       faqs: Table<FaqRow, InsertOf<FaqRow, AutoCols | "sort_order" | "is_active">>
       stats: Table<StatRow, InsertOf<StatRow, AutoCols | "suffix" | "count_up" | "sort_order" | "is_active">>
       brand_pillars: Table<BrandPillarRow, InsertOf<BrandPillarRow, AutoCols | "sort_order" | "is_active">>

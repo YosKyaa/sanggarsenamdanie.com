@@ -3,6 +3,7 @@
  * the client form; validation lives in ./schemas.ts (server only).
  */
 import { programIcons } from "@/components/atoms/icon"
+import { galleryCategories } from "@/features/gallery/categories"
 import type { CacheTag } from "@/lib/cache"
 import { weekdayLabel, weekdays } from "@/lib/utils/format"
 
@@ -34,13 +35,15 @@ export type FieldConfig = {
 export type ColumnConfig = {
   name: string
   label: string
-  format?: "boolean" | "time" | "day" | "relation" | "year" | "date" | "status" | "number" | "text"
+  format?: "boolean" | "time" | "day" | "relation" | "year" | "date" | "status" | "number" | "text" | "image" | "option"
   /** Numbers read best right-aligned; short flags centred. */
   align?: "left" | "center" | "right"
   /** Tailwind width class for fixed-size columns (e.g. "w-32"); the first column takes the rest. */
   width?: string
   /** Wording for boolean badges (default Aktif / Nonaktif). */
   labels?: { yes: string; no: string }
+  /** Labels for "option" columns (stored value → shown text). */
+  options?: readonly { value: string; label: string }[]
 }
 
 export type ResourceConfig = {
@@ -57,6 +60,7 @@ export type ResourceConfig = {
     | "brand_pillars"
     | "rental_uses"
     | "bio_links"
+    | "gallery_photos"
     | "studio_rental_requests"
     | "site_settings"
   label: string
@@ -75,6 +79,8 @@ export type ResourceConfig = {
   customList?: boolean
   /** Only admins (not editors) may open or change it. */
   adminOnly?: boolean
+  /** Shows the multi-photo uploader above the list (gallery). */
+  bulkUpload?: boolean
 }
 
 export type ResourceKey =
@@ -89,6 +95,7 @@ export type ResourceKey =
   | "pillars"
   | "rentalUses"
   | "bioLinks"
+  | "gallery"
   | "rentals"
   | "settings"
 
@@ -433,6 +440,45 @@ export const resources: Record<ResourceKey, ResourceConfig> = {
       { name: "description", label: "Deskripsi", type: "textarea", required: true, wide: true },
       sortField,
       activeField,
+    ],
+  },
+  gallery: {
+    key: "gallery",
+    table: "gallery_photos",
+    label: "Galeri Foto",
+    singular: "foto",
+    description: "Foto kegiatan sanggar untuk halaman Galeri dan beranda. Unggah banyak foto sekaligus, lalu beri keterangan bila perlu.",
+    tags: ["gallery"],
+    orderBy: [
+      { column: "taken_at", ascending: false },
+      { column: "created_at", ascending: false },
+    ],
+    bulkUpload: true,
+    columns: [
+      { name: "image_url", label: "Foto", format: "image", width: "w-24" },
+      { name: "caption", label: "Keterangan", format: "text" },
+      { name: "category", label: "Kategori", format: "option", options: galleryCategories, width: "w-32" },
+      { name: "taken_at", label: "Tanggal", format: "date" },
+      { name: "is_active", label: "Tampil", format: "boolean", labels: { yes: "Tampil", no: "Disembunyikan" } },
+    ],
+    fields: [
+      { name: "image_url", label: "Foto", type: "image", bucket: "images", required: true, wide: true },
+      {
+        name: "caption",
+        label: "Keterangan",
+        type: "text",
+        wide: true,
+        hint: "Singkat dan deskriptif, mis. Kelas Zumba pagi bersama ibu-ibu Tapos. Membantu SEO gambar.",
+      },
+      {
+        name: "category",
+        label: "Kategori",
+        type: "select",
+        required: true,
+        options: galleryCategories.map((c) => ({ value: c.value, label: c.label })),
+      },
+      { name: "taken_at", label: "Tanggal kegiatan", type: "date" },
+      { ...activeField, defaultChecked: true },
     ],
   },
   rentalUses: {

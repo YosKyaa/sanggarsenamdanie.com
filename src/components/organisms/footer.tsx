@@ -53,7 +53,12 @@ export function Footer({ settings, programs }: FooterProps) {
             Jelajahi
           </h2>
           <ul className="flex flex-col gap-2.5 text-sm">
-            {[...navItems, { href: "/rental", label: "Sewa Studio" }, { href: "/cek-status", label: "Cek Status Sewa" }].map(
+            {[
+              ...navItems,
+              { href: "/sertifikat", label: "Sertifikat" },
+              { href: "/rental", label: "Sewa Studio" },
+              { href: "/cek-status", label: "Cek Status Sewa" },
+            ].map(
               (item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-brand-100/85 transition-colors hover:text-white">

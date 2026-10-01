@@ -6,9 +6,10 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 
 import { formValues, type ActionResult, type FormState } from "@/lib/forms"
+import { supabaseUrl } from "@/lib/supabase/env"
 import { createReferenceCode } from "@/lib/utils/reference"
 import { fieldErrorsOf } from "@/lib/validation"
-import type { RequestStatus } from "@/types/database"
+import type { GalleryCategory, RequestStatus } from "@/types/database"
 
 import { requireAdmin, requireStaff } from "./auth"
 import { getResource, type FieldConfig, type ResourceConfig } from "./resources"
@@ -88,6 +89,11 @@ export async function saveResource(
   }
 
   const payload: Record<string, unknown> = { ...parsed.data }
+  // A replaced gallery photo has a new size; let the page fall back to a fixed frame.
+  if (resource.key === "gallery" && values.image_url !== formData.get("image_url")) {
+    payload.width = null
+    payload.height = null
+  }
   // Rentals added by hand (WhatsApp/phone) get a reference code like form submissions.
   if (resource.key === "rentals" && !id) payload.reference_code = createReferenceCode()
 
@@ -128,6 +134,46 @@ export async function deleteResource(resourceKey: string, id: string): Promise<A
 
   revalidateResource(resource)
   return { ok: true, message: `${capitalize(resource.singular)} berhasil dihapus.` }
+}
+
+const galleryCategoryValues: GalleryCategory[] = ["kelas", "event", "komunitas", "studio"]
+
+export type UploadedPhoto = { url: string; width: number; height: number }
+
+/**
+ * Records photos the browser already resized and uploaded straight to Storage
+ * (large batches would exceed the server's request size limit otherwise).
+ */
+export async function addGalleryPhotos(
+  photos: UploadedPhoto[],
+  meta: { category: string; takenAt: string },
+): Promise<ActionResult> {
+  const { supabase } = await requireStaff()
+
+  // Only files in this project's gallery folder can be registered.
+  const prefix = `${supabaseUrl}/storage/v1/object/public/images/gallery/`
+  const valid = photos.filter(
+    (p) =>
+      typeof p.url === "string" &&
+      p.url.startsWith(prefix) &&
+      Number.isInteger(p.width) &&
+      Number.isInteger(p.height) &&
+      p.width > 0 &&
+      p.height > 0,
+  )
+  if (valid.length === 0 || valid.length !== photos.length) return { ok: false, message: "Data foto tidak valid." }
+
+  const category = galleryCategoryValues.includes(meta.category as GalleryCategory) ? (meta.category as GalleryCategory) : "kelas"
+  const takenAt = /^\d{4}-\d{2}-\d{2}$/.test(meta.takenAt) ? meta.takenAt : null
+
+  const { error } = await supabase.from("gallery_photos").insert(
+    valid.map((p) => ({ image_url: p.url, width: p.width, height: p.height, category, taken_at: takenAt })),
+  )
+  if (error) return { ok: false, message: `Gagal menyimpan foto: ${error.message}` }
+
+  revalidateTag("gallery")
+  revalidatePath("/admin/gallery")
+  return { ok: true, message: `${valid.length} foto ditambahkan ke galeri.` }
 }
 
 const statuses: RequestStatus[] = ["new", "contacted", "completed"]

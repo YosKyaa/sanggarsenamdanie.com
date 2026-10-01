@@ -18,6 +18,7 @@ const pages: { path: string; priority: number; changeFrequency: "weekly" | "mont
   { path: "/artikel", priority: 0.7, changeFrequency: "weekly" },
   { path: "/instructor", priority: 0.6, changeFrequency: "monthly" },
   { path: "/rental", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/galeri", priority: 0.6, changeFrequency: "weekly" },
   { path: "/sertifikat", priority: 0.5, changeFrequency: "monthly" },
 ]
 

@@ -26,7 +26,7 @@ export const navItems = [
   { href: "/about", label: "Tentang Danie" },
   { href: "/program", label: "Program" },
   { href: "/instructor", label: "Instruktur" },
-  { href: "/sertifikat", label: "Sertifikat" },
+  { href: "/galeri", label: "Galeri" },
   { href: "/artikel", label: "Artikel" },
   { href: "/contact", label: "Kontak" },
 ] as const

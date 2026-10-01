@@ -1,6 +1,7 @@
 import type { SiteSettings } from "@/features/settings/types"
 import { site } from "@/lib/content/site"
-import type { ArticleRow, ProgramRow } from "@/types/database"
+import { galleryPhotoAlt } from "@/features/gallery/categories"
+import type { ArticleRow, GalleryPhotoRow, ProgramRow } from "@/types/database"
 
 const businessId = `${site.url}/#business`
 const websiteId = `${site.url}/#website`
@@ -149,6 +150,26 @@ export function articleJsonLd(article: ArticleRow) {
     inLanguage: "id-ID",
     author: { "@type": "Organization", name: article.author_name, url: site.url },
     publisher: { "@id": businessId, "@type": "Organization", name: site.name, logo: { "@type": "ImageObject", url: logoUrl } },
+  }
+}
+
+/** Gallery page as an ImageGallery of the studio's own photos (eligible for Google Images). */
+export function galleryJsonLd(photos: GalleryPhotoRow[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    name: `Galeri Kegiatan ${site.name}`,
+    url: `${site.url}/galeri`,
+    about: { "@id": businessId },
+    image: photos.slice(0, 50).map((photo) => ({
+      "@type": "ImageObject",
+      contentUrl: photo.image_url,
+      caption: galleryPhotoAlt(photo),
+      ...(photo.width && photo.height ? { width: photo.width, height: photo.height } : {}),
+      ...(photo.taken_at ? { dateCreated: photo.taken_at } : {}),
+      creditText: site.name,
+      copyrightHolder: { "@id": businessId },
+    })),
   }
 }
 

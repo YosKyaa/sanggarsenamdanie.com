@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 
 import { ButtonLink } from "@/components/atoms/button"
 import { AdminPageHeader, BooleanBadge, EmptyState, StatusPill, TableCard } from "@/components/organisms/admin/admin-ui"
+import { GalleryUploader } from "@/components/organisms/admin/gallery-uploader"
 import { RowActions } from "@/components/organisms/admin/row-actions"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { requireAdmin } from "@/features/admin/auth"
@@ -57,6 +58,15 @@ function renderCell(column: ColumnConfig, row: AdminRow, relations: Map<string, 
       return value == null ? empty : <span className="tabular-nums">{String(value)}</span>
     case "text":
       return value ? <span className="line-clamp-2 text-ink-muted">{String(value)}</span> : empty
+    case "option":
+      return column.options?.find((o) => o.value === value)?.label ?? (value ? String(value) : empty)
+    case "image":
+      return typeof value === "string" && value ? (
+        // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail of an arbitrary upload
+        <img src={value} alt="" loading="lazy" className="size-14 rounded-lg object-cover ring-1 ring-line" />
+      ) : (
+        empty
+      )
     default:
       return value == null || value === "" ? empty : String(value)
   }
@@ -91,6 +101,8 @@ export default async function ResourceListPage({ params }: Props) {
           )
         }
       />
+
+      {resource.bulkUpload ? <GalleryUploader /> : null}
 
       <TableCard count={rows.length} noun={resource.singular}>
         {rows.length === 0 ? (

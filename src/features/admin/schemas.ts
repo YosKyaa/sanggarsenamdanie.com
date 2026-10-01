@@ -137,6 +137,13 @@ export const resourceSchemas = {
     sort_order: intIn(0, 999).catch(0),
     is_active: checkbox,
   }),
+  gallery: z.object({
+    image_url: z.string().trim().min(1, "Pilih foto."),
+    caption: optionalText(140),
+    category: z.enum(["kelas", "event", "komunitas", "studio"]),
+    taken_at: z.preprocess((v) => (v === "" || v == null ? null : v), date.nullable()),
+    is_active: checkbox,
+  }),
   rentalUses: z.object({
     title: z.string().trim().min(2).max(60),
     description: z.string().trim().min(5, "Minimal 5 karakter.").max(200),

@@ -11,6 +11,7 @@ const pageNames: Record<string, string> = {
   "/rental": "Sewa studio",
   "/cek-status": "Cek status",
   "/bio": "Link bio (Instagram)",
+  "/galeri": "Galeri",
 }
 
 const titleCase = (slug: string) =>

@@ -3,6 +3,7 @@ import { AboutSection } from "@/components/sections/about-section"
 import { ArticleSection } from "@/components/sections/article-section"
 import { BrandSection } from "@/components/sections/brand-section"
 import { FaqSection } from "@/components/sections/faq-section"
+import { GallerySection } from "@/components/sections/gallery-section"
 import { HeroSection } from "@/components/sections/hero-section"
 import { ProgramSection } from "@/components/sections/program-section"
 import { RentalSection } from "@/components/sections/rental-section"
@@ -11,6 +12,7 @@ import { TestimonialSection } from "@/components/sections/testimonial-section"
 import { VisitSection } from "@/components/sections/visit-section"
 import { getArticles } from "@/features/articles/queries"
 import { getFaqs, getPillars, getRentalUses, getStats } from "@/features/content/queries"
+import { getGalleryPhotos } from "@/features/gallery/queries"
 import { getInstructors } from "@/features/instructors/queries"
 import { getPrograms } from "@/features/programs/queries"
 import { getSettings } from "@/features/settings/queries"
@@ -22,7 +24,7 @@ import { whatsappLink, whatsappMessages } from "@/lib/utils/whatsapp"
  * in the About block, address and hours in the closing Visit block.
  */
 export default async function HomePage() {
-  const [settings, programs, instructors, testimonials, articles, stats, pillars, rentalUses, faqs] = await Promise.all([
+  const [settings, programs, instructors, testimonials, articles, stats, pillars, rentalUses, faqs, photos] = await Promise.all([
     getSettings(),
     getPrograms(),
     getInstructors(),
@@ -32,6 +34,7 @@ export default async function HomePage() {
     getPillars(),
     getRentalUses(),
     getFaqs(),
+    getGalleryPhotos(),
   ])
 
   const founder = instructors.find((i) => i.is_founder) ?? null
@@ -48,6 +51,7 @@ export default async function HomePage() {
       <BrandSection pillars={pillars} tone="soft" />
       {/* Desire */}
       <AboutSection settings={settings} founder={founder} hasTeam={instructors.length > 1} />
+      <GallerySection photos={photos} />
       <TestimonialSection testimonials={testimonials} />
       <RentalSection settings={settings} uses={rentalUses} />
       <ArticleSection articles={articles} tone="soft" />

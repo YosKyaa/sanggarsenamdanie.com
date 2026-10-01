@@ -12,6 +12,7 @@ export const cacheTags = {
   pillars: "pillars",
   rentalUses: "rental-uses",
   bioLinks: "bio-links",
+  gallery: "gallery",
 } as const
 
 export type CacheTag = (typeof cacheTags)[keyof typeof cacheTags]

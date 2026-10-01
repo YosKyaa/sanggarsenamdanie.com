@@ -7,6 +7,7 @@ import {
   ChartNoAxesColumn,
   CircleHelp,
   Dumbbell,
+  Images,
   LayoutDashboard,
   Link2,
   ListChecks,
@@ -41,6 +42,7 @@ const groups = [
       { href: "/admin/certificates", label: "Sertifikat", icon: Award },
       { href: "/admin/testimonials", label: "Testimoni", icon: MessageSquareQuote },
       { href: "/admin/articles", label: "Artikel", icon: Newspaper },
+      { href: "/admin/gallery", label: "Galeri Foto", icon: Images },
     ],
   },
   {
